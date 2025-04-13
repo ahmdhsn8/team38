@@ -1,0 +1,148 @@
+#include<iostream>
+#include<string>
+#include<cmath>
+
+using namespace std;
+
+class Material{
+protected:
+    string name;
+    double yield_strength;
+    double density;
+
+public:
+    //function constructor bta3 input l material
+    Material(string name, double yield_strength, double density){
+        this-> name = name;
+        this-> yield_strength= yield_strength;
+        this->density=density;
+    }
+    //fn output l properties 
+    void display_material_properties(){
+        cout<<"Material: "<<name<<"\n";
+        cout<<"Yield Strength: "<<yield_strength<<" Mpa\n";
+        cout<<"Density: "<<density<<" kg/m³\n\n";
+    }
+};
+
+class Motor{
+    protected:
+        string name;
+        double torque;
+        double speed;
+        double mass;
+        double diameter;
+        double width;
+
+    public:
+        //constructor input l motors
+        Motor(string name, double torque, double speed, double mass, double diameter, double width){
+            this-> name = name;
+            this-> torque = torque;
+            this -> speed = speed;
+            this -> mass = mass;
+            this -> diameter = diameter;
+            this -> width = width;
+        
+        }
+
+        // fn output l properties
+        void display_motor_properties(){
+            cout<<"Model: "<<name<<"\n";
+            cout<<"Tourque: "<<torque<<" mNm"<<"\n";
+            cout<<"Speed: "<<speed<<" rpm"<<"\n";
+            cout<<"Mass: "<<mass<<" g"<<"\n";
+            cout<<"Diameter: "<<diameter<<" mm"<<"\n";
+            cout<<"Width: "<<width<<" mm"<<"\n";
+        }
+
+}
+
+//eqns
+
+    //momennt of inertia
+        //rectangle
+        double recInertia(double b, double h){
+            return (b*pow(h,3))/12;
+        }
+        //circle
+        double circInertia(double r){
+        return (M_PI*pow(r,4))/4;
+        }
+
+    //maximum strength 
+        //rectangle
+        double recMaxStress(double m, double h, double i){
+            return (m*h)/(2*i);
+        }
+        //circle 
+        double circMaxStress(double m, double r, double i){
+            return (m*r)/i;
+        }
+    //Link mass
+        //Rectangle
+        double recMass(double p, double b, doubleh, double l){
+            return p*b*h*l;
+        }
+        //Circle 
+        double circMass(double p, double r, double l){
+            return p*M_PI*pow(r,2)*l;
+        }
+    //Bending Moment
+    //Calculate Bending Moment
+        // The moment at the base of the link includes:
+        // Weight force (𝑊 = 𝑚𝑔).
+        // Inertial force (𝐹 = 𝑚 𝑎).
+        // Equation:
+        // 𝑀 = 𝑚𝑙∗𝑔∗(𝐿 / 2)+(𝑚𝑝∗𝑔∗ 𝐿)+(𝑚𝑙∗(𝐿2)2∗𝛼𝑚𝑎𝑥+𝑚𝑝∗𝐿2∗𝛼𝑚𝑎𝑥)
+        // Where:
+        // 𝑔 = 9.81 𝑚/𝑠²
+        // 𝑚𝑙.𝑔.𝐿/2: Weight of link acting at its center of mass.
+        // (𝑚𝑝∗𝑔∗ 𝐿): Weight of payload at end-effector.
+        // (𝑚𝑙∗(𝐿2)2∗𝛼𝑚𝑎𝑥+𝑚𝑝∗𝐿2∗𝛼𝑚𝑎𝑥): Inertial force.
+    double bendingMoment(double ml, double l, double mp, double sig){
+        return ml*9.81*l*0.5 + mp*9.81*l + ml *pow((0.5*l),2) *sig + mp*pow(l,2)*sig;
+    }
+
+    //Torque calculation
+        //Required Torque Calculation
+        double torqueRec(double ml, double l, double mp, double sig){
+            return ml*9.81*l*0.5+mp*9.81*l+ml*pow((l*0.5),2)*sig +mp*pow(l,2)*sig;
+        }
+        //Motor gear box output tourque calculation
+        double torqueMotorGear(double tMotor, double ratio, double efficency){
+            return tMotor*ratio*efficency;
+        }
+        //Motor-Gearbox output speed calculation
+        double speedMotorGear(double w, double ratio ){
+            return w*ratio;
+        }
+    //Compute Cost fn
+        double cost(double m, double d, double w){
+            return m+ d/100 + w/100;
+        }
+
+    //entering the provided  mateials properties 
+    void materialTable(){
+    Material steel("Steel",247,7.58);
+    Material cast("Cast Iron",130,7.3);
+    Material cu_nik("Copper Nickel",130,8.94);
+    Material brass("Brass",200,8.73);
+    Material aluminium("Aluminium",241,2.7);
+    Material acrylic("Acrylic",72,1.16);
+    Material copper("Copper",70,892);
+    Material stainless("Stainless Steel",275,7.86);
+    Material tungsten("Tungsten",941,19.75);
+    }
+int main(){
+    materialTable();
+    steel.display_material_properties();
+    cast.display_material_properties();
+    cu_nik.display_material_properties();
+    brass.display_material_properties();
+    aluminium.display_material_properties();
+    acrylic.display_material_properties();
+    stainless.display_material_properties();
+    tungsten.display_material_properties();
+
+}
