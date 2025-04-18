@@ -1,0 +1,5 @@
+.github/workflows/c-cpp.yml
+*.exe
+*.json
+*.exe
+*.cpp
