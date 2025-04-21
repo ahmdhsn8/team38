@@ -80,14 +80,12 @@ class circle
 {
     public:
     double r, l,m,p,I,mP,alphaMax,yield;
-    circle () {}
     long double Area ()
     {
         return r*r*M_PI ;
     }
     long double Inertia()
         {
-            //double I=(M_PI * pow(r, 4)) / 4.0;
             return (M_PI * pow(r, 4)) / 4.0;
         }
     long double circMaxStress()
@@ -100,7 +98,7 @@ class circle
         }
     long double bendingMoment()
     {
-        return circMass()*9.81*l*0.5 + mP*9.81*l + circMass() *pow((0.5*l),2) *alphaMax + mP*pow(l,2)*alphaMax;
+        return circMass()*9.81*l*0.5 + mP*9.81*l + (circMass() *pow((0.5*l),2) *alphaMax + mP*pow(l,2)*alphaMax);
     }
     
 };
@@ -126,22 +124,26 @@ class rectangle
     }
     long double bendingMoment()
     {
-        return recMass()*9.81*l*0.5 + mP*9.81*l + recMass() *pow((0.5*l),2) *alphaMax + mP*pow(l,2)*alphaMax;
+        return recMass()*9.81*l*0.5 + mP*9.81*l + (recMass() *pow((0.5*l),2) *alphaMax + mP*pow(l,2)*alphaMax);
     }
 };
 void flow_func_circ (string shapeType, circle& C)  //hanwsal l7d as8r aw akbar mn sigma yield b 0.1
 {
     double sigma_calc= C.circMaxStress();
+    //cout<<sigma_calc<<"\n";
     double sigma_yield= C.yield;
-    int max_iter=1000000;
+    int max_iter=100;
     int iter=0;
     if (shapeType=="Circle" && sigma_calc < sigma_yield)
     {
-        while (sigma_calc < (sigma_yield - 0.1) && iter < max_iter)
+        while (sigma_calc < (sigma_yield - 5) && iter < max_iter)
         {
-            C.r +=0.1 * C.r;
+            C.r +=0.01 * C.r;
             sigma_calc = C.circMaxStress();
+            //cout << C.r<<"\n";
+            //cout<< sigma_calc<<"\n";
             iter++;
+            
         }
         
     }
@@ -151,8 +153,12 @@ void flow_func_circ (string shapeType, circle& C)  //hanwsal l7d as8r aw akbar m
         {
             C.r -=0.1 * C.r;
             sigma_calc = C.circMaxStress();
+            //cout << C.r;
+            //cout<< sigma_calc;
             iter++;
         }
+            cout << C.r;
+            cout<< sigma_calc;
     }
     if (iter >= max_iter) 
     {
@@ -207,7 +213,7 @@ int main()
     int choice;
     cout << "Choose a material:\n";
     for (int i = 0; i < materials.size(); i++) {
-        cout << i + 1 << "- " << materials[i].getName() << "\n";
+         cout << i + 1 << "- " << materials[i].getName() << "\n";
     }
     cout << (materials.size()+1)<< "- new material   " ;
     choice = ValidInt( 1, materials.size() + 1);
@@ -257,6 +263,7 @@ int main()
         cout << "\n What is the Maximum angular accelaration : " ;
         cin >> C1.alphaMax ;
         flow_func_circ("Circle",C1);
+        cout<< "Member length :"<<C1.l;
         cout << "\n--- Optimization Complete ---\n";
         cout << "Final Optimized Radius: " << C1.r << " m\n";
         cout << "Final Stress: " << C1.circMaxStress() << " MPa\n";
@@ -269,8 +276,8 @@ int main()
         T1.h = ValidDouble("\n rectangle hieght = ");
         T1.b = ValidDouble("\n rectangle width = ");
         T1.l = ValidDouble("\n Member length = ");
-        C1.p = selected.getDensity();
-        C1.yield =selected.getYieldStrength();
+        T1.p = selected.getDensity();
+        T1.yield =selected.getYieldStrength();
         cout << "What is the pay load : " ;
         cin >> T1.mP ;
         cout << "\n What is the Maximum angular accelaration : " ;
@@ -290,5 +297,5 @@ int main()
         cout << "Invalid input. Please enter 'circle' or 'rectangle'.\n";
         continue; 
     }
-}
+    }
 }
