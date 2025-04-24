@@ -1,0 +1,66 @@
+#include<iostream>
+#include<string>
+#include<cmath>
+
+using namespace std;
+
+
+class Motor{
+    protected:
+        string name;
+        double torque;
+        double speed;
+        double mass;
+        double diameter;
+        double width;
+
+    public:
+        //constructor input l motors
+        Motor(string name, double torque, double speed, double mass, double diameter, double width){
+            this-> name = name;
+            this-> torque = torque;
+            this -> speed = speed;
+            this -> mass = mass;
+            this -> diameter = diameter;
+            this -> width = width;
+        
+        }
+
+        // fn output l properties
+        void display_motor_properties(){
+            cout<<"Model: "<<name<<"\n";
+            cout<<"Tourque: "<<torque<<" mNm"<<"\n";
+            cout<<"Speed: "<<speed<<" rpm"<<"\n";
+            cout<<"Mass: "<<mass<<" g"<<"\n";
+            cout<<"Diameter: "<<diameter<<" mm"<<"\n";
+            cout<<"Width: "<<width<<" mm"<<"\n";
+        }
+
+}
+
+//eqns
+
+
+    //Torque calculation
+        //Required Torque Calculation
+        double torqueRec(double ml, double l, double mp, double sig){
+            return ml*9.81*l*0.5+mp*9.81*l+ml*pow((l*0.5),2)*sig +mp*pow(l,2)*sig;
+        }
+        //Motor gear box output tourque calculation
+        double torqueMotorGear(double tMotor, double ratio, double efficency){
+            return tMotor*ratio*efficency;
+        }
+        //Motor-Gearbox output speed calculation
+        double speedMotorGear(double w, double ratio ){
+            return w*ratio;
+        }
+    //Compute Cost fn
+        double cost(double m, double d, double w){
+            return m+ d/100 + w/100;
+        }
+
+    //entering the provided  mateials properties 
+    }
+int main(){
+ 
+}
