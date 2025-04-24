@@ -132,7 +132,7 @@ void flow_func_circ (string shapeType, circle& C)  //hanwsal l7d as8r aw akbar m
     double sigma_calc= C.circMaxStress();
     //cout<<sigma_calc<<"\n";
     double sigma_yield= C.yield;
-    int max_iter=1000000000000000;
+    long long int max_iter=pow(10,10);
     int iter=0;
     double stepRatio =1;
     if (shapeType=="Circle" && sigma_calc < sigma_yield)
@@ -170,7 +170,7 @@ void flow_func_rec (rectangle& T)  //hanwsal l7d as8r aw akbar mn sigma yield b 
 {
     double sigma_calc= T.recMaxStress();
     double sigma_yield= T.yield;
-    int max_iter=1000000000000000;
+    long long int max_iter= pow(10,10);
     int iter=0;
     double stepRatio =1;
     if (sigma_calc < sigma_yield)
