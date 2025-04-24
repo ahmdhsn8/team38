@@ -11,7 +11,7 @@ double ValidDouble(string prompt) {
     while (true) {
         cout << prompt;
         cin >> value;
-        if (!cin.fail()) break;
+        if (!cin.fail() && value > 0) break;
         cin.clear(); // clear error flag
         cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
         cout << "Invalid input. Please enter a number.\n";
@@ -24,7 +24,7 @@ double ValidDouble(string prompt) {
 int ValidInt( int min, int max) {
     int value;
     while (true) {
-        cout << "Enter the number of the material you want to select: ";
+        cout << "\n Enter the number of the material you want to select: ";
         cin >> value;
         if (!cin.fail() && value >= min && value <= max) break;
         cin.clear();
@@ -122,7 +122,7 @@ class rectangle
             //Rectangle
     long double recMass()
     {
-        return p*b*h*l;
+        return (p*b*h*l);
     }
     long double bendingMoment()
     {
@@ -248,13 +248,13 @@ int main()
         cin >> x ;
     if (x== "circle" ||x== "Circle" ||x== "c") // mesh gmani el mokarna bs it worked
     {
-        C1.r = ValidDouble("\n circle radius = ");
-        C1.l = ValidDouble("\n Member length = ");
+        C1.r = ValidDouble("\n circle radius (in mm)= ");
+        C1.l = ValidDouble("\n Member length (in mm)= ");
         C1.p = selected.getDensity();
         C1.yield =selected.getYieldStrength();
-        cout << "What is the pay load : " ;
+        cout << "What is the pay load (in kgs): " ;
         cin >> C1.mP ;
-        cout << "\n What is the Maximum angular accelaration : " ;
+        cout << "\n What is the Maximum angular accelaration (rad/s^2): " ;
         cin >> C1.alphaMax ;
         flow_func_circ("Circle",C1);
         cout << "\n--- Optimization Complete ---\n";
@@ -266,14 +266,14 @@ int main()
     }
     else if (x== "Rectangle" ||x== "rectangle"||x=="r")
     {
-        T1.h = ValidDouble("\n rectangle hieght = ");
-        T1.b = ValidDouble("\n rectangle width = ");
-        T1.l = ValidDouble("\n Member length = ");
+        T1.h = ValidDouble("\n rectangle hieght (in mm)= ");
+        T1.b = ValidDouble("\n rectangle width (in mm)= ");
+        T1.l = ValidDouble("\n Member length (in mm) = ");
         T1.p = selected.getDensity();
         T1.yield =selected.getYieldStrength();
-        cout << "What is the pay load : " ;
+        cout << "What is the pay load (in kgs): " ;
         cin >> T1.mP ;
-        cout << "\n What is the Maximum angular accelaration : " ;
+        cout << "\n What is the Maximum angular accelaration (rad/s^2): " ;
         cin >> T1.alphaMax ;
         flow_func_rec(T1);
         cout << "\n--- Optimization Complete ---\n";
@@ -287,6 +287,7 @@ int main()
     else 
     {
         cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
         cout << "Invalid input. Please enter 'circle' or 'rectangle'.\n";
         continue; 
     }
