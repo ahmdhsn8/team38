@@ -269,8 +269,8 @@ int main()
         T1.h = ValidDouble("\n rectangle hieght = ");
         T1.b = ValidDouble("\n rectangle width = ");
         T1.l = ValidDouble("\n Member length = ");
-        C1.p = selected.getDensity();
-        C1.yield =selected.getYieldStrength();
+        T1.p = selected.getDensity();
+        T1.yield =selected.getYieldStrength();
         cout << "What is the pay load : " ;
         cin >> T1.mP ;
         cout << "\n What is the Maximum angular accelaration : " ;
