@@ -12,9 +12,9 @@ double ValidDouble(string prompt) {
         cin >> value;
         if (!cin.fail()&& value>0 ) break;
         cin.clear(); // clear error flag
-        cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
         cout << "Invalid input. Please enter a number.\n";
-        continue; 
+        continue;
     }
     cin.ignore(numeric_limits<streamsize>::max(), '\n'); // remove leftover newline
     return value;
@@ -27,7 +27,7 @@ int ValidInt( int min, int max) {
         cin >> value;
         if (!cin.fail() && value >= min && value <= max) break;
         cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
         cout << "Invalid input. Please enter a number between " << min << " and " << max << ".\n";
         continue;
     }
@@ -38,13 +38,103 @@ int ValidInt( int min, int max) {
 string ValidString(string y) {
     string value;
     cout << y;
-    getline(cin >> ws, value); 
+    getline(cin >> ws, value);
     return value;
 }
 
 
 const double g = 9.81; //m/s2
 double chosen_yield =0;
+
+class Motor
+{
+public:
+    double torque;
+    double speed;
+    double mass;
+    double diameter;
+    double width;
+    string name;
+    //constructor input l motors
+    Motor(string name, double torque, double speed, double mass, double diameter, double width)
+    {
+        this-> name = name;
+        this-> torque = torque;
+        this -> speed = speed;
+        this -> mass = mass;
+        this -> diameter = diameter;
+        this -> width = width;
+
+    }
+
+    // fn output l properties
+    void display_motor_properties()
+    {
+        cout<<"Model: "<<name<<"\n";
+        cout<<"Tourque: "<<torque<<" mNm"<<"\n";
+        cout<<"Speed: "<<speed<<" rpm"<<"\n";
+        cout<<"Mass: "<<mass<<" g"<<"\n";
+        cout<<"Diameter: "<<diameter<<" mm"<<"\n";
+        cout<<"Width: "<<width<<" mm"<<"\n";
+    }
+    string getName(){
+        return this->name;
+    }
+
+};
+
+class Gearbox
+{
+public:
+    string name;
+    double redRatio;
+    double mass;
+    double diameter;
+    double width;
+    double eff;
+    Gearbox() {}
+    Gearbox(string name, double redRatio, double mass, double diameter, double width, double eff)
+    {
+        this -> name = name;
+        this -> redRatio = redRatio;
+        this -> mass = mass;
+        this -> diameter = diameter;
+        this -> width = width;
+        this -> eff = eff;
+    }
+
+    void display_gear_properties()
+    {
+        cout << "Model: "<<name<<"\n";
+        cout << "Reduction Ratio: "<<redRatio<<"\n";
+        cout << "Mass: "<<mass<<" Kg\n";
+        cout << "Diameter: "<<diameter<<" mm\n";
+        cout << "Width: "<< width<< " mm\n";
+        cout << "Efficency: "<< eff<< " %\n";
+    }
+
+};
+
+class Pairs
+{
+public:
+    Motor* M_REF;
+    Gearbox* G_REF;
+    float Tout;
+    float Wout;
+    float cost;
+    float Mtotal;
+    float Dtotal;
+    float Wtotal;
+    Pairs(){}
+    Pairs(Motor &MID, Gearbox &GID)
+    {
+        this -> M_REF = &MID;
+        this -> G_REF = &GID;
+    }
+
+};
+
 class Material{
     protected:
         string name;
@@ -85,7 +175,7 @@ class circle
     long double Inertia()
         {
             return (M_PI * pow(r, 4)) / 4.0;
-        } 
+        }
     long double circMaxStress()
         {
             return (bendingMoment()*1000*r)/Inertia(); //gives MPa
@@ -98,7 +188,7 @@ class circle
     {
         return (circMass()*9.81*l*0.5*pow(10,-3) + mP*9.81*l*pow(10,-3) + (circMass() *pow((0.5*l*pow(10,-3)),2) *alphaMax + mP*pow(l*pow(10,-3),2)*alphaMax));
     }    // gives N.m
-    
+
 };
 class rectangle
 {
@@ -108,7 +198,7 @@ class rectangle
     {
         return h*b ;
     }
-    long double Inertia()  
+    long double Inertia()
     {
         return (b * pow(h, 3)) / 12.0;
     }
@@ -126,6 +216,30 @@ class rectangle
         return recMass()*9.81*l*pow(10,-3)*0.5 + mP*9.81*l*pow(10,-3) + (recMass() *pow((0.5*l*pow(10,-3)),2) *alphaMax + mP*pow(l*pow(10,-3),2)*alphaMax);
     }
 };
+
+
+//Torque calculation
+//Required Torque Calculation
+double torqueRec(double ml, double l, double mp, double sig)
+{
+    return ml*9.81*l*0.5+mp*9.81*l+ml*pow((l*0.5),2)*sig +mp*pow(l,2)*sig;
+}
+//Motor gear box output tourque calculation
+double torqueMotorGear(double tMotor, double ratio, double efficency)
+{
+    return tMotor*ratio*efficency;
+}
+//Motor-Gearbox output speed calculation
+double speedMotorGear(double w, double ratio )
+{
+    return w*ratio;
+}
+//Compute Cost fn
+double cost(double m, double d, double w)
+{
+    return m+ d/100 + w/100;
+}
+
 void flow_func_circ (string shapeType, circle& C)  //hanwsal l7d as8r aw akbar mn sigma yield b 0.1
 {
     double sigma_calc= C.circMaxStress();
@@ -143,9 +257,9 @@ void flow_func_circ (string shapeType, circle& C)  //hanwsal l7d as8r aw akbar m
             //cout << C.r<<"\n";
             //cout<< sigma_calc<<"\n";
             iter++;
-            
+
         }
-        
+
     }
     else if (shapeType=="Circle" && sigma_calc > sigma_yield )
     {
@@ -161,7 +275,7 @@ void flow_func_circ (string shapeType, circle& C)  //hanwsal l7d as8r aw akbar m
             //cout<< sigma_calc<<"\n";
     }
     cout <<"\n number of iteration = "<<iter<<"\n";
-    if (iter >= max_iter) 
+    if (iter >= max_iter)
     {
         cout << "\n Optimization failed: reached max iterations.\n";
     }
@@ -233,7 +347,7 @@ void flow_func_rec (rectangle& T)  //hanwsal l7d as8r aw akbar mn sigma yield b 
             iter++;
             }
         }
-        else 
+        else
         {
             while (sigma_calc > (sigma_yield + 2) && iter < max_iter)
             {
@@ -247,7 +361,7 @@ void flow_func_rec (rectangle& T)  //hanwsal l7d as8r aw akbar mn sigma yield b 
         }
     }
     cout <<"\n number of iteration = "<<iter<<"\n";
-    if (iter >= max_iter) 
+    if (iter >= max_iter)
     {
         cout << "\n Optimization failed: reached max iterations.\n";
     }
@@ -263,6 +377,25 @@ vector <Material> materials = {
     Material("Stainless Steel", 275, 7.86),
     Material("Tungsten", 941, 19.75)
 };
+
+vector <Motor> motors =
+{
+    Motor("Motor 1", 0.322, 6650, 225, 50, 22),
+    Motor("Motor 2", 1.710, 3410, 741, 85, 33),
+    Motor("Motor 3", 0.430, 4330, 270, 50, 27),
+    Motor("Motor 5", 0.688, 4570, 377, 65, 25),
+    Motor("Motor 6", 1.130, 2590, 524, 65, 33),
+    Motor("Motor 7", 0.186, 6290, 170, 38, 25),
+    Motor("Motor 8", 0.097, 12400, 125, 38, 19)
+};
+
+vector <Gearbox> Gearboxes =
+{
+    Gearbox("GB 12 worm gear", 30/1, 1.5, 12, 62, 65),
+    Gearbox("Planetary gearhead GP 42 A", 1296/1, .56,42,155.6,64),
+    Gearbox("Planetary Gearhead GP 16 A Ø16 mm, 0.1 - 0.3 Nm, Metal Version, Sleeve Bearing", 4.4/1, .02, 16, 52.3, .9)
+};
+
 void Type_func (double alphaMaX ,double mP ,long double I ,rectangle T1 ,circle C1 ,string x )
 {
 
@@ -274,7 +407,7 @@ int main()
 
     int choice;
     cout << "Choose a material:\n";
-    for (int i = 0; i < materials.size(); i++) 
+    for (int i = 0; i < materials.size(); i++)
     {
         cout << i + 1 << "- " << materials[i].getName() << "\n";
     }
@@ -318,7 +451,7 @@ int main()
         cout << "Final Optimized Radius: " << C1.r << " mm\n";
         cout << "Final Stress: " << C1.circMaxStress() << " MPa\n";
         cout << "Bending Moment: " << C1.bendingMoment() << " Nm\n";
-        cout << "Mass: " << C1.circMass() << " kg\n"; 
+        cout << "Mass: " << C1.circMass() << " kg\n";
         break;
     }
     else if (x== "Rectangle" ||x== "rectangle"||x=="r")
@@ -340,14 +473,37 @@ int main()
         cout << "Final Optimized width: " << T1.b << " mm\n";
         cout << "Final Stress: " << T1.recMaxStress() << " MPa\n";
         cout << "Bending Moment: " << T1.bendingMoment() << " Nm\n";
-        cout << "Mass: " << T1.recMass() << " g\n"; 
+        cout << "Mass: " << T1.recMass() << " g\n";
         break;
     }
-    else 
+    else
     {
         cin.clear();
         cout << "Invalid input. Please enter 'circle' or 'rectangle'.\n";
-        continue; 
+        continue;
     }
     }
+    double Treq = torqueRec(C1.circMass(), C1.l/1000, C1.mP, C1.alphaMax);
+    double Wreq = 1000;
+    vector <Pairs> PairsV;
+
+    for (int i = 0; i < motors.size(); i++)
+    {
+        for (int j = 0; j < Gearboxes.size(); j++)
+        {
+            double Tout = torqueMotorGear(motors[i].torque, Gearboxes[j].redRatio, Gearboxes[j].eff);
+            double Wout = speedMotorGear(motors[i].speed, Gearboxes[j].redRatio);
+            if(Tout >= Treq)
+            {
+                Pairs tempPair;
+                tempPair.M_REF = &motors[i];
+                tempPair.G_REF = &Gearboxes[j];
+                PairsV.push_back(tempPair);
+            }
+        }
+    }
+    for (int j = 0; j < PairsV.size(); j++)
+        {
+            cout << "Pair No {" << j << "}: " << PairsV[j].M_REF->getName() << " with " << PairsV[j].G_REF->name << endl;
+        }
 }
