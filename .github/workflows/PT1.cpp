@@ -11,7 +11,7 @@ double ValidDouble(string prompt) {
     while (true) {
         cout << prompt;
         cin >> value;
-        if (!cin.fail()) break;
+        if (!cin.fail()&& value>0 ) break;
         cin.clear(); // clear error flag
         cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
         cout << "Invalid input. Please enter a number.\n";
@@ -132,7 +132,7 @@ void flow_func_circ (string shapeType, circle& C)  //hanwsal l7d as8r aw akbar m
     double sigma_calc= C.circMaxStress();
     //cout<<sigma_calc<<"\n";
     double sigma_yield= C.yield;
-    int max_iter=100000000000000;
+    int max_iter=1000000000000000;
     int iter=0;
     double stepRatio =1;
     if (shapeType=="Circle" && sigma_calc < sigma_yield)
@@ -170,7 +170,7 @@ void flow_func_rec (rectangle& T)  //hanwsal l7d as8r aw akbar mn sigma yield b 
 {
     double sigma_calc= T.recMaxStress();
     double sigma_yield= T.yield;
-    int max_iter=100000000000000;
+    int max_iter=1000000000000000;
     int iter=0;
     double stepRatio =1;
     if (sigma_calc < sigma_yield)
@@ -287,23 +287,10 @@ int main()
     {
         string newmaterial = ValidString("New Material Name: ");
         double newyield_strength = ValidDouble("Yield Strength in MPa: ");
-        double newdensity = ValidDouble("Density in g/cm3: ");
-        Material custom (newmaterial, newyield_strength, newdensity);
-        materials.push_back(custom);
-    }
-    string newmaterial ;
-    double newyield_strength;
-    double newdensity;
-    if (choice==(materials.size()+1) )
-    {
-        cout<<"\nNew Material Name : ";
-        cin >> newmaterial ;
-        cout<<"Yield Strength in MPa : " ;
-        cin >> newyield_strength ;
-        cout<<"Density in g/cm3: ";
-        cin >> newdensity ;
-        Material custom (newmaterial, newyield_strength, newdensity);
-        materials.push_back(custom);
+        double newdensity = ValidDouble("Density in kg/m^3: ");
+         Material custom (newmaterial, newyield_strength, newdensity);
+         materials.push_back(custom);
+
     }
     Material selected = materials[choice - 1];
     selected.display_material_properties();
@@ -318,13 +305,13 @@ int main()
         cin >> x ;
     if (x== "circle" ||x== "Circle" ||x== "c") // mesh gmani el mokarna bs it worked
     {
-        C1.r = ValidDouble("\n circle radius in mm = ");
-        C1.l = ValidDouble("\n Member length in mm = ");
+        C1.r = ValidDouble("\n circle radius (in mm) = ");
+        C1.l = ValidDouble("\n Member length (in mm) = ");
         C1.p = selected.getDensity();
         C1.yield =selected.getYieldStrength();
-        cout << "What is the pay load in kilogram : " ;
+        cout << "What is the pay load (in kilogram) : " ;
         cin >> C1.mP ;
-        cout << "\n What is the Maximum angular accelaration rad/s2 : " ;
+        cout << "\n What is the Maximum angular accelaration (rad/s^2) : " ;
         cin >> C1.alphaMax ;
         cout <<"\n What is step ratio needed in % (default value = 1%) : ";
         cin >> C1.stepRatio;
@@ -339,14 +326,14 @@ int main()
     }
     else if (x== "Rectangle" ||x== "rectangle"||x=="r")
     {
-        T1.h = ValidDouble("\n rectangle height in mm = ");
-        T1.b = ValidDouble("\n rectangle width in mm = ");
-        T1.l = ValidDouble("\n Member length in mm= ");
+        T1.h = ValidDouble("\n rectangle height (in mm) = ");
+        T1.b = ValidDouble("\n rectangle width (in mm) = ");
+        T1.l = ValidDouble("\n Member length (in mm) = ");
         T1.p = selected.getDensity();
         T1.yield =selected.getYieldStrength();
-        cout << "What is the pay load in kilogram : " ;
+        cout << "What is the pay load (in kilogram) : " ;
         cin >> T1.mP ;
-        cout << "\n What is the Maximum angular accelaration rad/s2 : " ;
+        cout << "\n What is the Maximum angular accelaration (rad/s^2) : " ;
         cin >> T1.alphaMax ;
         cout <<"\n What is step ratio needed in % (default value = 1%) : ";
         cin >> T1.stepRatio;

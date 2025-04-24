@@ -220,20 +220,6 @@ int main()
          materials.push_back(custom);
 
     }
-    string newmaterial ;
-    double newyield_strength;
-    double newdensity;
-    if (choice==(materials.size()+1) )
-    {
-        cout<<"\nNew Material Name : ";
-        cin >> newmaterial ;
-        cout<<"Yield Strength in MPa : " ;
-        cin >> newyield_strength ;
-        cout<<"Density in kg/m3: ";
-         cin >> newdensity ;
-         Material custom (newmaterial, newyield_strength, newdensity);
-         materials.push_back(custom);
-    }
     Material selected = materials[choice - 1];
     selected.display_material_properties();
     double alphaMaX ;
