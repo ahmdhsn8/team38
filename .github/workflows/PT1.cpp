@@ -287,7 +287,7 @@ int main()
     {
         string newmaterial = ValidString("New Material Name: ");
         double newyield_strength = ValidDouble("Yield Strength in MPa: ");
-        double newdensity = ValidDouble("Density in kg/m^3: ");
+        double newdensity = ValidDouble("Density in g/cm^3: ");
          Material custom (newmaterial, newyield_strength, newdensity);
          materials.push_back(custom);
 
