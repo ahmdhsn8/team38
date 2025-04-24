@@ -160,6 +160,7 @@ void flow_func_circ (string shapeType, circle& C)  //hanwsal l7d as8r aw akbar m
             //cout << C.r<<"\n";
             //cout<< sigma_calc<<"\n";
     }
+    cout <<"\n number of iteration = "<<iter<<"\n";
     if (iter >= max_iter) 
     {
         cout << "\n Optimization failed: reached max iterations.\n";
@@ -207,7 +208,6 @@ void flow_func_rec (rectangle& T)  //hanwsal l7d as8r aw akbar mn sigma yield b 
                 iter++;
             }
         }
-    
     }
     else if (sigma_calc > sigma_yield )
     {
@@ -245,10 +245,8 @@ void flow_func_rec (rectangle& T)  //hanwsal l7d as8r aw akbar mn sigma yield b 
             iter++;
             }
         }
-
-       
     }
-    cout<< "iterations = "<< iter;
+    cout <<"\n number of iteration = "<<iter<<"\n";
     if (iter >= max_iter) 
     {
         cout << "\n Optimization failed: reached max iterations.\n";
