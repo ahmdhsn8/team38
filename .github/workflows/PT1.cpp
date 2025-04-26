@@ -5,6 +5,9 @@
 #include <vector>
 #include <limits>
 using namespace std;
+const double g = 9.81; //m/s2
+double chosen_yield =0;
+
 double ValidDouble(string prompt) {
     double value;
     while (true) {
@@ -43,9 +46,141 @@ string ValidString(string y) {
 }
 
 
-const double g = 9.81; //m/s2
-double chosen_yield =0;
+class Material{
+    protected:
+        string name;
+        double yield_strength;
+        double density;
+    public:
+        //function constructor bta3 input l material
+        Material(string name, double yield_strength, double density){
+            this-> name = name;
+            this-> yield_strength= yield_strength;
+            this-> density=density;
+        }
+        //fn output l properties
+        void display_material_properties() const{
+            cout<<"Material: "<<name;
+            cout<<"\nYield Strength: "<<yield_strength<<" Mpa\n";
+            cout<<"Density: "<<density<<" g/cm³\n";
+            chosen_yield =yield_strength;
+        }
+        string getName() const {
+            return name;
+        }
+        double getDensity()const {
+             return density;
+        }
+        double getYieldStrength() const {
+            return yield_strength;
+        }
+    };
+    int chooseMaterial() {
+        cout << "Choose a material:\n";
+        for (int i = 0; i < materials.size(); i++)
+            cout << i + 1 << "- " << materials[i].getName() << "\n";
+        cout << materials.size() + 1 << "- New Material\n";
+    
+        int choice = ValidInt(1, materials.size() + 1);
+    
+        if (choice == materials.size() + 1) {
+            string newName = ValidString("New Material Name: ");
+            double newYield = ValidDouble("Yield Strength (MPa): ");
+            double newDensity = ValidDouble("Density (g/cm^3): ");
+            materials.emplace_back(newName, newYield, newDensity);
+            choice = materials.size();
+        }
+        materials[choice - 1].display_material_properties();
+        return choice - 1;
+    }
+class circle
+{
+    public:
+    double r, l,m,p,I,mP,alphaMax,yield,stepRatio;
+    long double Area ()
+    {
+        return r*r*M_PI ;
+    }
+    long double Inertia()
+        {
+            return (M_PI * pow(r, 4)) / 4.0;
+        }
+    long double circMaxStress()
+        {
+            return (bendingMoment()*1000*r)/Inertia(); //gives MPa
+        }
+    long double circMass()
+        {
+            return p*M_PI*pow(r,2)*l*pow(10,-6); // gives kilogram
+        }
+    long double bendingMoment()
+    {
+        return (circMass()*9.81*l*0.5*pow(10,-3) + mP*9.81*l*pow(10,-3) + (circMass() *pow((0.5*l*pow(10,-3)),2) *alphaMax + mP*pow(l*pow(10,-3),2)*alphaMax));
+    }    // gives N.m
 
+};
+class rectangle
+{
+    public:
+    double h, b,l,mP,alphaMax,p,yield,stepRatio; // height hwa h w width hwa b
+    long double Area ()
+    {
+        return h*b ;
+    }
+    long double Inertia()
+    {
+        return (b * pow(h, 3)) / 12.0;
+    }
+    long double recMaxStress ()
+    {
+        return (bendingMoment()*1000*h)/(2*Inertia());
+    }
+            //Rectangle
+    long double recMass()
+    {
+        return p*b*h*l*pow(10,-6);
+    }
+    long double bendingMoment()
+    {
+        return recMass()*9.81*l*pow(10,-3)*0.5 + mP*9.81*l*pow(10,-3) + (recMass() *pow((0.5*l*pow(10,-3)),2) *alphaMax + mP*pow(l*pow(10,-3),2)*alphaMax);
+    }
+};
+
+void handleC(const Material& selected, circle& C1) {
+    C1.r = ValidDouble("\nCircle radius (mm): ");
+    C1.l = ValidDouble("Member length (mm): ");
+    C1.p = selected.getDensity();
+    C1.yield = selected.getYieldStrength();
+    C1.mP = ValidDouble("Payload (kg): ");
+    C1.alphaMax = ValidDouble("Max angular acceleration (rad/s²): ");
+    C1.stepRatio = ValidDouble("Step ratio (%) [default 1%]: ");
+    flow_func_circ("Circle", C1);
+
+    cout << "\n--- Optimization Complete ---\n"
+         << "Final Radius: " << C1.r << " mm\n"
+         << "Final Stress: " << C1.circMaxStress() << " MPa\n"
+         << "Bending Moment: " << C1.bendingMoment() << " Nm\n"
+         << "Mass: " << C1.circMass() << " kg\n";
+}
+
+void handleR(const Material& selected, rectangle& T1) {
+    T1.h = ValidDouble("\nRectangle height (mm): ");
+    T1.b = ValidDouble("Rectangle width (mm): ");
+    T1.l = ValidDouble("Member length (mm): ");
+    T1.p = selected.getDensity();
+    T1.yield = selected.getYieldStrength();
+    T1.mP = ValidDouble("Payload (kg): ");
+    T1.alphaMax = ValidDouble("Max angular acceleration (rad/s²): ");
+    T1.stepRatio = ValidDouble("Step ratio (%) [default 1%]: ");
+    flow_func_rec(T1);
+
+    cout << "\n--- Optimization Complete ---\n"
+         << "Final Height: " << T1.h << " mm\n"
+         << "Final Width: " << T1.b << " mm\n"
+         << "Final Stress: " << T1.recMaxStress() << " MPa\n"
+         << "Bending Moment: " << T1.bendingMoment() << " Nm\n"
+         << "Mass: " << T1.recMass() << " kg\n";
+}
 class Motor
 {
 public:
@@ -134,89 +269,6 @@ public:
     }
 
 };
-
-class Material{
-    protected:
-        string name;
-        double yield_strength;
-        double density;
-    public:
-        //function constructor bta3 input l material
-        Material(string name, double yield_strength, double density){
-            this-> name = name;
-            this-> yield_strength= yield_strength;
-            this-> density=density;
-        }
-        //fn output l properties
-        void display_material_properties(){
-            cout<<"Material: "<<name<<"\n";
-            cout<<"Yield Strength: "<<yield_strength<<" Mpa\n";
-            cout<<"Density: "<<density<<" g/cm³\n\n";
-            chosen_yield =yield_strength;
-        }
-        string getName() {
-            return name;
-        }
-        double getDensity() {
-             return density;
-        }
-        double getYieldStrength() {
-            return yield_strength;
-        }
-    };
-class circle
-{
-    public:
-    double r, l,m,p,I,mP,alphaMax,yield,stepRatio;
-    long double Area ()
-    {
-        return r*r*M_PI ;
-    }
-    long double Inertia()
-        {
-            return (M_PI * pow(r, 4)) / 4.0;
-        }
-    long double circMaxStress()
-        {
-            return (bendingMoment()*1000*r)/Inertia(); //gives MPa
-        }
-    long double circMass()
-        {
-            return p*M_PI*pow(r,2)*l*pow(10,-6); // gives kilogram
-        }
-    long double bendingMoment()
-    {
-        return (circMass()*9.81*l*0.5*pow(10,-3) + mP*9.81*l*pow(10,-3) + (circMass() *pow((0.5*l*pow(10,-3)),2) *alphaMax + mP*pow(l*pow(10,-3),2)*alphaMax));
-    }    // gives N.m
-
-};
-class rectangle
-{
-    public:
-    double h, b,l,mP,alphaMax,p,yield,stepRatio; // height hwa h w width hwa b
-    long double Area ()
-    {
-        return h*b ;
-    }
-    long double Inertia()
-    {
-        return (b * pow(h, 3)) / 12.0;
-    }
-    long double recMaxStress ()
-    {
-        return (bendingMoment()*1000*h)/(2*Inertia());
-    }
-            //Rectangle
-    long double recMass()
-    {
-        return p*b*h*l*pow(10,-6);
-    }
-    long double bendingMoment()
-    {
-        return recMass()*9.81*l*pow(10,-3)*0.5 + mP*9.81*l*pow(10,-3) + (recMass() *pow((0.5*l*pow(10,-3)),2) *alphaMax + mP*pow(l*pow(10,-3),2)*alphaMax);
-    }
-};
-
 
 //Torque calculation
 //Required Torque Calculation
@@ -396,84 +448,27 @@ vector <Gearbox> Gearboxes =
     Gearbox("Planetary Gearhead GP 16 A Ø16 mm, 0.1 - 0.3 Nm, Metal Version, Sleeve Bearing", 4.4/1, .02, 16, 52.3, .9)
 };
 
-void Type_func (double alphaMaX ,double mP ,long double I ,rectangle T1 ,circle C1 ,string x )
-{
-
-}
-
-
 int main()
 {
-
-    int choice;
-    cout << "Choose a material:\n";
-    for (int i = 0; i < materials.size(); i++)
-    {
-        cout << i + 1 << "- " << materials[i].getName() << "\n";
-    }
-    cout << (materials.size()+1)<< "- new material   " ;
-    choice = ValidInt( 1, materials.size() + 1);
-    if (choice==(materials.size()+1) )
-    {
-        string newmaterial = ValidString("New Material Name: ");
-        double newyield_strength = ValidDouble("Yield Strength in MPa: ");
-        double newdensity = ValidDouble("Density in g/cm^3: ");
-         Material custom (newmaterial, newyield_strength, newdensity);
-         materials.push_back(custom);
-
-    }
-    Material selected = materials[choice - 1];
-    selected.display_material_properties();
+    int materialIndex = chooseMaterial();
+    Material selected = materials[materialIndex];
     rectangle T1 ;
     circle C1 ;
     string x ;
-    while (true)
-    {
-        cout << "\nwhat is the cross section type (circle or rectangle): ";
-        cin >> x ;
-    if (x== "circle" ||x== "Circle" ||x== "c") // mesh gmani el mokarna bs it worked
-    {
-        C1.r = ValidDouble("\n circle radius (in mm) = ");
-        C1.l = ValidDouble("\n Member length (in mm) = ");
-        C1.p = selected.getDensity();
-        C1.yield =selected.getYieldStrength();
-        C1.mP= ValidDouble ( "\n What is the pay load (in kilogram) : " ); 
-        C1.alphaMax = ValidDouble ( "\n What is the Maximum angular accelaration (rad/s^2) : ") ;
-        C1.stepRatio = ValidDouble ("\n What is step ratio needed in % (default value = 1%) : ");
-        flow_func_circ("Circle",C1);
-        cout<< "Member length :"<<C1.l;
-        cout << "\n--- Optimization Complete ---\n";
-        cout << "Final Optimized Radius: " << C1.r << " mm\n";
-        cout << "Final Stress: " << C1.circMaxStress() << " MPa\n";
-        cout << "Bending Moment: " << C1.bendingMoment() << " Nm\n";
-        cout << "Mass: " << C1.circMass() << " kg\n";
-        break;
-    }
-    else if (x== "Rectangle" ||x== "rectangle"||x=="r")
-    {
-        T1.h = ValidDouble("\n rectangle height (in mm) = ");
-        T1.b = ValidDouble("\n rectangle width (in mm) = ");
-        T1.l = ValidDouble("\n Member length (in mm) = ");
-        T1.p = selected.getDensity();
-        T1.yield =selected.getYieldStrength();
-        T1.mP= ValidDouble ( "\n What is the pay load (in kilogram) : " ); 
-        T1.alphaMax = ValidDouble ( "\n What is the Maximum angular accelaration (rad/s^2) : ") ;
-        T1.stepRatio = ValidDouble ("\n What is step ratio needed in % (default value = 1%) : ");
-        flow_func_rec(T1);
-        cout << "\n--- Optimization Complete ---\n";
-        cout << "Final Optimized height: " << T1.h << " mm\n";
-        cout << "Final Optimized width: " << T1.b << " mm\n";
-        cout << "Final Stress: " << T1.recMaxStress() << " MPa\n";
-        cout << "Bending Moment: " << T1.bendingMoment() << " Nm\n";
-        cout << "Mass: " << T1.recMass() << " g\n";
-        break;
-    }
-    else
-    {
-        cin.clear();
-        cout << "Invalid input. Please enter 'circle' or 'rectangle'.\n";
-        continue;
-    }
+    while (true) {
+        cout << "\nEnter cross-section type (circle/rectangle): ";
+        cin >> x;
+        if (x == "circle" || x == "Circle" || x == "c") {
+            handleC(selected, C1);
+            break;
+        } 
+        else if (x == "rectangle" || x == "Rectangle" || x == "r") {
+            handleR(selected, T1);
+            break;
+        } 
+        else {
+            cout << "Invalid input. Please enter 'circle' or 'rectangle'.\n";
+        }
     }
     double Treq = torqueRec(C1.circMass(), C1.l/1000, C1.mP, C1.alphaMax);
     double Wreq = 1000;
