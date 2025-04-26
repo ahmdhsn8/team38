@@ -424,8 +424,6 @@ int main()
     }
     Material selected = materials[choice - 1];
     selected.display_material_properties();
-    double alphaMaX ;
-    double mP ; // payload variable
     rectangle T1 ;
     circle C1 ;
     string x ;
@@ -439,12 +437,9 @@ int main()
         C1.l = ValidDouble("\n Member length (in mm) = ");
         C1.p = selected.getDensity();
         C1.yield =selected.getYieldStrength();
-        cout << "What is the pay load (in kilogram) : " ;
-        cin >> C1.mP ;
-        cout << "\n What is the Maximum angular accelaration (rad/s^2) : " ;
-        cin >> C1.alphaMax ;
-        cout <<"\n What is step ratio needed in % (default value = 1%) : ";
-        cin >> C1.stepRatio;
+        C1.mP= ValidDouble ( "\n What is the pay load (in kilogram) : " ); 
+        C1.alphaMax = ValidDouble ( "\n What is the Maximum angular accelaration (rad/s^2) : ") ;
+        C1.stepRatio = ValidDouble ("\n What is step ratio needed in % (default value = 1%) : ");
         flow_func_circ("Circle",C1);
         cout<< "Member length :"<<C1.l;
         cout << "\n--- Optimization Complete ---\n";
@@ -461,12 +456,9 @@ int main()
         T1.l = ValidDouble("\n Member length (in mm) = ");
         T1.p = selected.getDensity();
         T1.yield =selected.getYieldStrength();
-        cout << "What is the pay load (in kilogram) : " ;
-        cin >> T1.mP ;
-        cout << "\n What is the Maximum angular accelaration (rad/s^2) : " ;
-        cin >> T1.alphaMax ;
-        cout <<"\n What is step ratio needed in % (default value = 1%) : ";
-        cin >> T1.stepRatio;
+        T1.mP= ValidDouble ( "\n What is the pay load (in kilogram) : " ); 
+        T1.alphaMax = ValidDouble ( "\n What is the Maximum angular accelaration (rad/s^2) : ") ;
+        T1.stepRatio = ValidDouble ("\n What is step ratio needed in % (default value = 1%) : ");
         flow_func_rec(T1);
         cout << "\n--- Optimization Complete ---\n";
         cout << "Final Optimized height: " << T1.h << " mm\n";
