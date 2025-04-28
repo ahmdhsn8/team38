@@ -1,10 +1,17 @@
 #define _USE_MATH_DEFINES
 #include<iostream>
-#include<string>
 #include<cmath>
 #include <vector>
 #include <limits>
+#include <string>
+#include <algorithm>
 using namespace std;
+
+class rectangle;
+class circle;
+void flow_func_rec(rectangle & T); // Update to include parameters
+void flow_func_circ(const string shapeType, circle& C); // Update to include parameters
+
 const double g = 9.81; //m/s2
 double chosen_yield =0;
 
@@ -75,6 +82,18 @@ class Material{
             return yield_strength;
         }
     };
+    vector <Material> materials = {
+        Material("Steel", 247, 7.58),
+        Material("Cast Iron", 130, 7.3),
+        Material("Copper Nickel", 130, 8.94),
+        Material("Brass", 200, 8.73),
+        Material("Aluminium", 241, 2.7),
+        Material("Acrylic", 72, 1.16),
+        Material("Copper", 70, 8.92),
+        Material("Stainless Steel", 275, 7.86),
+        Material("Tungsten", 941, 19.75)
+    };
+    
     int chooseMaterial() {
         cout << "Choose a material:\n";
         for (int i = 0; i < materials.size(); i++)
@@ -393,7 +412,7 @@ double cost(double m, double d, double w)
     return m+ d/100 + w/100;
 }
 
-void flow_func_circ (string shapeType, circle& C)  //hanwsal l7d as8r aw akbar mn sigma yield b 0.1
+void flow_func_circ(const string shapeType, circle & C)  //hanwsal l7d as8r aw akbar mn sigma yield b 0.1
 {
     double sigma_calc= C.circMaxStress();
     //cout<<sigma_calc<<"\n";
@@ -433,7 +452,7 @@ void flow_func_circ (string shapeType, circle& C)  //hanwsal l7d as8r aw akbar m
         cout << "\n Optimization failed: reached max iterations.\n";
     }
 }
-void flow_func_rec (rectangle& T)  //hanwsal l7d as8r aw akbar mn sigma yield b 0.1
+void flow_func_rec(rectangle & T)  //hanwsal l7d as8r aw akbar mn sigma yield b 0.1
 {
     double sigma_calc= T.recMaxStress();
     double sigma_yield= T.yield;
@@ -519,18 +538,6 @@ void flow_func_rec (rectangle& T)  //hanwsal l7d as8r aw akbar mn sigma yield b 
         cout << "\n Optimization failed: reached max iterations.\n";
     }
 }
-vector <Material> materials = {
-    Material("Steel", 247, 7.58),
-    Material("Cast Iron", 130, 7.3),
-    Material("Copper Nickel", 130, 8.94),
-    Material("Brass", 200, 8.73),
-    Material("Aluminium", 241, 2.7),
-    Material("Acrylic", 72, 1.16),
-    Material("Copper", 70, 8.92),
-    Material("Stainless Steel", 275, 7.86),
-    Material("Tungsten", 941, 19.75)
-};
-
 
 int main()
 {
@@ -560,15 +567,15 @@ int main()
 
     for (int i = 0; i < motors.size(); i++)
     {
-        for (int j = 0; j < Gearboxes.size(); j++)
+        for (int j = 0; j < gearboxes.size(); j++)
         {
-            double Tout = torqueMotorGear(motors[i].torque, Gearboxes[j].redRatio, Gearboxes[j].eff);
-            double Wout = speedMotorGear(motors[i].speed, Gearboxes[j].redRatio);
+            double Tout = torqueMotorGear(motors[i].torque, gearboxes[j].redRatio, gearboxes[j].eff);
+            double Wout = speedMotorGear(motors[i].speed, gearboxes[j].redRatio);
             if(Tout >= Treq)
             {
                 Pairs tempPair;
                 tempPair.M_REF = &motors[i];
-                tempPair.G_REF = &Gearboxes[j];
+                tempPair.G_REF = &gearboxes[j];
                 PairsV.push_back(tempPair);
             }
         }
