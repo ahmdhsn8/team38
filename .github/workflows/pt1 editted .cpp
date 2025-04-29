@@ -11,10 +11,7 @@ void flow_func_rec(rectangle & T); // Update to include parameters
 void flow_func_circ(const string shapeType, circle& C); // Update to include parameters
 
 const double g = 9.81; //m/s2
-double chosen_yield =0;
-
-char validchar (string y)
-{
+char validchar (string y) {
     char value;
     while (true){
         cout << y;
@@ -30,7 +27,6 @@ char validchar (string y)
         }
         return value;
     }
-
 }
 
 double ValidDouble(string prompt)
@@ -80,8 +76,7 @@ class Material
 {
 protected:
     string name;
-    double yield_strength;
-    double density;
+    double yield_strength,density;
 public:
     //function constructor bta3 input l material
     Material(string name, double yield_strength, double density)
@@ -96,7 +91,7 @@ public:
         cout<<"Material: "<<name;
         cout<<"\nYield Strength: "<<yield_strength<<" Mpa\n";
         cout<<"Density: "<<density<<" g/cm³\n";
-        chosen_yield =yield_strength;
+        double chosen_yield =yield_strength;
     }
     string getName() const
     {
@@ -197,7 +192,7 @@ public:
     }
 };
 
-void handleC(const Material& selected, circle& C1)
+void handleCircle(const Material& selected, circle& C1)
 {
     C1.r = ValidDouble("\nCircle radius (mm): ");
     C1.l = ValidDouble("Member length (mm): ");
@@ -215,7 +210,7 @@ void handleC(const Material& selected, circle& C1)
          << "Mass: " << C1.circMass() << " kg\n";
 }
 
-void handleR(const Material& selected, rectangle& T1)
+void handleRectangle(const Material& selected, rectangle& T1)
 {
     T1.h = ValidDouble("\nRectangle height (mm): ");
     T1.b = ValidDouble("Rectangle width (mm): ");
@@ -237,11 +232,7 @@ void handleR(const Material& selected, rectangle& T1)
 class Motor
 {
 public:
-    double torque;
-    double speed;
-    double mass;
-    double diameter;
-    double width;
+    double torque,speed,mass,diameter,width;
     string name;
     //constructor input l motors
     Motor(string name, double torque, double speed, double mass, double diameter, double width)
@@ -387,12 +378,7 @@ class Pairs
 public:
     Motor* M_REF;
     Gearbox* G_REF;
-    float Tout;
-    float Wout;
-    float cost;
-    float Mtotal;
-    float Dtotal;
-    float Wtotal;
+    float Tout,Wout,cost,Mtotal,Dtotal,Wtotal;
     Pairs() {}
     Pairs(Motor &MID, Gearbox &GID)
     {
@@ -564,12 +550,12 @@ int main()
         cin >> x;
         if (x == "circle" || x == "Circle" || x == "c")
         {
-            handleC(selected, C1);
+            handleCircle(selected, C1);
             break;
         }
         else if (x == "rectangle" || x == "Rectangle" || x == "r")
         {
-            handleR(selected, T1);
+            handleRectangle(selected, T1);
             break;
         }
         else
