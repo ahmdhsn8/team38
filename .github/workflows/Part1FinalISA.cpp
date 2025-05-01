@@ -11,7 +11,7 @@ double ValidDouble(string prompt) {
     while (true) {
         cout << prompt;
         cin >> value;
-        if (!cin.fail() && value > 0) break;
+        if (!cin.fail()) break;
         cin.clear(); // clear error flag
         cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
         cout << "Invalid input. Please enter a number.\n";
@@ -24,7 +24,7 @@ double ValidDouble(string prompt) {
 int ValidInt( int min, int max) {
     int value;
     while (true) {
-        cout << "\n Enter the number of the material you want to select: ";
+        cout << "Enter the number of the material you want to select: ";
         cin >> value;
         if (!cin.fail() && value >= min && value <= max) break;
         cin.clear();
@@ -44,7 +44,7 @@ string ValidString(string y) {
 }
 
 
-const double g = 9.81;
+const double g = 9.81; //m/s2
 double chosen_yield=0;
 double MaxStress=0;
 class Material{
@@ -63,7 +63,7 @@ class Material{
         void display_material_properties(){
             cout<<"Material: "<<name<<"\n";
             cout<<"Yield Strength: "<<yield_strength<<" Mpa\n";
-            cout<<"Density: "<<density<<" kg/m³\n\n";
+            cout<<"Density: "<<density<<" g/cm³\n\n";
             chosen_yield =yield_strength;
         }
         string getName() {
@@ -80,28 +80,26 @@ class circle
 {
     public:
     double r, l,m,p,I,mP,alphaMax,yield;
-    circle () {}
     long double Area ()
     {
         return r*r*M_PI ;
     }
     long double Inertia()
         {
-            //double I=(M_PI * pow(r, 4)) / 4.0;
             return (M_PI * pow(r, 4)) / 4.0;
-        }
+        } 
     long double circMaxStress()
         {
-            return (bendingMoment()*r)/Inertia();
+            return (bendingMoment()*1000*r)/Inertia(); //gives MPa
         }
     long double circMass()
         {
-            return p*M_PI*pow(r,2)*l;
+            return p*M_PI*pow(r,2)*l*pow(10,-6); // gives kilogram
         }
     long double bendingMoment()
     {
-        return circMass()*9.81*l*0.5 + mP*9.81*l + circMass() *pow((0.5*l),2) *alphaMax + mP*pow(l,2)*alphaMax;
-    }
+        return (circMass()*9.81*l*0.5*pow(10,-3) + mP*9.81*l*pow(10,-3) + (circMass() *pow((0.5*l*pow(10,-3)),2) *alphaMax + mP*pow(l*pow(10,-3),2)*alphaMax));
+    }    // gives N.m
     
 };
 class rectangle
@@ -117,42 +115,50 @@ class rectangle
     }
     long double recMaxStress ()
     {
-        return (bendingMoment()*h)/(2*Inertia());
+        return (bendingMoment()*1000*h)/(2*Inertia());
     }
             //Rectangle
     long double recMass()
     {
-        return (p*b*h*l);
+        return p*b*h*l*pow(10,-6);
     }
     long double bendingMoment()
     {
-        return recMass()*9.81*l*0.5 + mP*9.81*l + recMass() *pow((0.5*l),2) *alphaMax + mP*pow(l,2)*alphaMax;
+        return recMass()*9.81*l*pow(10,-3)*0.5 + mP*9.81*l*pow(10,-3) + (recMass() *pow((0.5*l*pow(10,-3)),2) *alphaMax + mP*pow(l*pow(10,-3),2)*alphaMax);
     }
 };
 void flow_func_circ (string shapeType, circle& C)  //hanwsal l7d as8r aw akbar mn sigma yield b 0.1
 {
     double sigma_calc= C.circMaxStress();
+    //cout<<sigma_calc<<"\n";
     double sigma_yield= C.yield;
-    int max_iter=1000000;
+    int max_iter=100000000000000;
     int iter=0;
     if (shapeType=="Circle" && sigma_calc < sigma_yield)
     {
-        while (sigma_calc < (sigma_yield - 0.1) && iter < max_iter)
+        while (sigma_calc < (sigma_yield - 0.5)  ) //&& iter < max_iter
         {
-            C.r +=0.1 * C.r;
+            C.r -=0.01 * C.r;
             sigma_calc = C.circMaxStress();
+            //cout << C.r<<"\n";
+            //cout<< sigma_calc<<"\n";
             iter++;
+            
         }
         
     }
     else if (shapeType=="Circle" && sigma_calc > sigma_yield )
     {
-        while (sigma_calc > sigma_yield + 0.1  && iter < max_iter )
+        while (sigma_calc > (sigma_yield + 0.5)  ) //&& iter < max_iter
         {
-            C.r -=0.1 * C.r;
+            C.r +=0.1 * C.r;
             sigma_calc = C.circMaxStress();
+            //cout << C.r<<"\n";
+            //cout<< sigma_calc<<"\n";
             iter++;
         }
+            //cout << C.r<<"\n";
+            //cout<< sigma_calc<<"\n";
     }
     if (iter >= max_iter) 
     {
@@ -163,29 +169,85 @@ void flow_func_rec (rectangle& T)  //hanwsal l7d as8r aw akbar mn sigma yield b 
 {
     double sigma_calc= T.recMaxStress();
     double sigma_yield= T.yield;
-    int max_iter=1000;
+    int max_iter=100000000000000;
     int iter=0;
     if (sigma_calc < sigma_yield)
     {
-        while (sigma_calc < (sigma_yield - 0.1) && iter < max_iter)
+        while (sigma_calc < (sigma_yield - 2) && iter < max_iter)
         {
-            T.b +=0.1 * T.b;
-            T.h +=0.1 * T.h;
+            T.b -=0.01 * T.b;
+            T.h -=0.01 * T.h;
             sigma_calc = T.recMaxStress();
+            // cout << T.b<<"\n";
+            // cout << T.h <<"\n";
+            // cout<< sigma_calc<<"\n";
             iter++;
         }
-        
+        if (T.b > T.h)
+        {
+           while (sigma_calc < (sigma_yield - 2) && iter < max_iter)
+            {
+                T.b -=0.0001 * T.b;
+               // T.h -=0.0001 * T.h;
+                sigma_calc = T.recMaxStress();
+                //cout << T.b<<"\n";
+                //cout<< sigma_calc<<"\n";
+                iter++;
+            }
+        }
+        else
+        {
+            while (sigma_calc < (sigma_yield -2) && iter < max_iter)
+            {
+                T.h -=0.0001 * T.h;
+                sigma_calc = T.recMaxStress();
+                //cout << T.b<<"\n";
+                //cout<< sigma_calc<<"\n";
+                iter++;
+            }
+        }
+    
     }
     else if (sigma_calc > sigma_yield )
     {
-        while (sigma_calc > sigma_yield + 0.1  && iter < max_iter )
+        while (sigma_calc > (sigma_yield + 2)  && iter < max_iter )
         {
-            T.b -=0.1 * T.b;
-            T.h -=0.1 * T.h;
+            T.b +=0.01 * T.b;
+            T.h +=0.01 * T.h;
             sigma_calc = T.recMaxStress();
+            //cout << T.b<<"\n";
+            //cout << T.h <<"\n";
+            //cout<< sigma_calc<<"\n";
             iter++;
         }
+        if (T.b < T.h)
+        {
+             while (sigma_calc > (sigma_yield + 2) && iter < max_iter)
+            {
+            T.b +=0.0001 * T.b;
+            //T.h +=0.0001 * T.h;
+            sigma_calc = T.recMaxStress();
+            //cout << T.b<<"\n";
+            //cout<< sigma_calc<<"\n";
+            iter++;
+            }
+        }
+        else 
+        {
+            while (sigma_calc > (sigma_yield + 2) && iter < max_iter)
+            {
+            T.h +=0.0001 * T.h;
+            //T.h +=0.0001 * T.h;
+            sigma_calc = T.recMaxStress();
+            //cout << T.b<<"\n";
+            //cout<< sigma_calc<<"\n";
+            iter++;
+            }
+        }
+
+       
     }
+    cout<< "iterations = "<< iter;
     if (iter >= max_iter) 
     {
         cout << "\n Optimization failed: reached max iterations.\n";
@@ -207,7 +269,7 @@ int main()
     int choice;
     cout << "Choose a material:\n";
     for (int i = 0; i < materials.size(); i++) {
-        cout << i + 1 << "- " << materials[i].getName() << "\n";
+         cout << i + 1 << "- " << materials[i].getName() << "\n";
     }
     cout << (materials.size()+1)<< "- new material   " ;
     choice = ValidInt( 1, materials.size() + 1);
@@ -215,10 +277,24 @@ int main()
     {
         string newmaterial = ValidString("New Material Name: ");
         double newyield_strength = ValidDouble("Yield Strength in MPa: ");
-        double newdensity = ValidDouble("Density in kg/m3: ");
+        double newdensity = ValidDouble("Density in g/cm3: ");
          Material custom (newmaterial, newyield_strength, newdensity);
          materials.push_back(custom);
 
+    }
+    string newmaterial ;
+    double newyield_strength;
+    double newdensity;
+    if (choice==(materials.size()+1) )
+    {
+        cout<<"\nNew Material Name : ";
+        cin >> newmaterial ;
+        cout<<"Yield Strength in MPa : " ;
+        cin >> newyield_strength ;
+        cout<<"Density in g/cm3: ";
+         cin >> newdensity ;
+         Material custom (newmaterial, newyield_strength, newdensity);
+         materials.push_back(custom);
     }
     Material selected = materials[choice - 1];
     selected.display_material_properties();
@@ -234,17 +310,18 @@ int main()
         cin >> x ;
     if (x== "circle" ||x== "Circle" ||x== "c") // mesh gmani el mokarna bs it worked
     {
-        C1.r = ValidDouble("\n circle radius (in mm)= ");
-        C1.l = ValidDouble("\n Member length (in mm)= ");
+        C1.r = ValidDouble("\n circle radius in mm = ");
+        C1.l = ValidDouble("\n Member length in mm = ");
         C1.p = selected.getDensity();
         C1.yield =selected.getYieldStrength();
-        cout << "What is the pay load (in kgs): " ;
+        cout << "What is the pay load in kilogram : " ;
         cin >> C1.mP ;
-        cout << "\n What is the Maximum angular accelaration (rad/s^2): " ;
+        cout << "\n What is the Maximum angular accelaration rad/s2 : " ;
         cin >> C1.alphaMax ;
         flow_func_circ("Circle",C1);
+        cout<< "Member length :"<<C1.l;
         cout << "\n--- Optimization Complete ---\n";
-        cout << "Final Optimized Radius: " << C1.r << " m\n";
+        cout << "Final Optimized Radius: " << C1.r << " mm\n";
         cout << "Final Stress: " << C1.circMaxStress() << " MPa\n";
         cout << "Bending Moment: " << C1.bendingMoment() << " Nm\n";
         cout << "Mass: " << C1.circMass() << " kg\n"; 
@@ -252,30 +329,29 @@ int main()
     }
     else if (x== "Rectangle" ||x== "rectangle"||x=="r")
     {
-        T1.h = ValidDouble("\n rectangle hieght (in mm)= ");
-        T1.b = ValidDouble("\n rectangle width (in mm)= ");
-        T1.l = ValidDouble("\n Member length (in mm) = ");
+        T1.h = ValidDouble("\n rectangle height in mm = ");
+        T1.b = ValidDouble("\n rectangle width in mm = ");
+        T1.l = ValidDouble("\n Member length in mm= ");
         T1.p = selected.getDensity();
         T1.yield =selected.getYieldStrength();
-        cout << "What is the pay load (in kgs): " ;
+        cout << "What is the pay load in kilogram : " ;
         cin >> T1.mP ;
-        cout << "\n What is the Maximum angular accelaration (rad/s^2): " ;
+        cout << "\n What is the Maximum angular accelaration rad/s2 : " ;
         cin >> T1.alphaMax ;
         flow_func_rec(T1);
         cout << "\n--- Optimization Complete ---\n";
-        cout << "Final Optimized height: " << T1.h << " m\n";
-        cout << "Final Optimized width: " << T1.b << " m\n";
+        cout << "Final Optimized height: " << T1.h << " mm\n";
+        cout << "Final Optimized width: " << T1.b << " mm\n";
         cout << "Final Stress: " << T1.recMaxStress() << " MPa\n";
         cout << "Bending Moment: " << T1.bendingMoment() << " Nm\n";
-        cout << "Mass: " << T1.recMass() << " kg\n"; 
+        cout << "Mass: " << T1.recMass() << " g\n"; 
         break;
     }
     else 
     {
         cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
         cout << "Invalid input. Please enter 'circle' or 'rectangle'.\n";
         continue; 
     }
-}
+    }
 }

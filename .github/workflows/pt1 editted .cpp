@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES  // 34an el pi t4ta8al
 #include<iostream>
 #include<cmath>
 #include <vector>
