@@ -15,18 +15,17 @@ char validchar (string y) {
     char value;
     while (true){
         cout << y;
-        cin >> ws, value;
-        if (value =='y'||value =='n' ){
+        cin >> value;
+        if (value =='y'||value =='n'||value =='Y'||value =='N'){
             break;
         }
         else{
             cout << "Invalid input. Please enter (y/n) \n " ;
             cin.clear(); // clear error flag
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            continue;
-        }
-        return value;
+        }   
     }
+    return value;
 }
 
 double ValidDouble(string prompt)
@@ -267,8 +266,8 @@ vector<Motor> motors;
 // the user keeps adding motors as much as he wants
 void adding_motors()//ha7tag a7ot adding_motors(); fel main ... matensash //
 {
-    while (true)
-    {
+    while (true){
+    
         cout << "\nAdding a new Motor:\n";
 
         string name = ValidString("Enter Motor Name: ");
@@ -291,15 +290,17 @@ void adding_motors()//ha7tag a7ot adding_motors(); fel main ... matensash //
         motors.push_back(newMotor);
 
         // Ask if they want to add another
-        cout << "\nDo you want to add another motor? (y/n): ";
-        char choice;
-        cin >> choice;
-
-        if (choice != 'y')
+        char choice = validchar ("\nDo you want to add another motor? (y/n): ");
+        if (choice == 'n' || choice == 'N')
         {
+            cout << "Exiting Motor addition.\n";
             break;
         }
-    }
+        else if (choice == 'y' || choice == 'Y')
+        {
+            cout << "Adding another motor...\n";
+        }
+}
 }
 
 
@@ -364,9 +365,14 @@ void adding_gearboxes()//ha7tag a7ot adding_gearboxes(); fel main ... matensash 
         // Ask if they want to add another
         char choice;
          choice = validchar ("\nDo you want to add another gearbox? (y/n): ") ;
-        if (choice != 'y')
+        if (choice == 'N'|| choice == 'n')
         {
+            cout << "Exiting Gearbox addition.\n";
             break;
+        }
+        else if (choice == 'y' || choice == 'Y')
+        {
+            cout << "Adding another gearbox...\n";
         }
     }
 }
