@@ -5,13 +5,13 @@
 #include <limits>
 #include <string>
 using namespace std;
-
+const double g = 9.81; //m/s2
 class rectangle;
 class circle;
 void flow_func_rec(rectangle & T); // Update to include parameters
 void flow_func_circ(const string shapeType, circle& C); // Update to include parameters
 
-const double g = 9.81; //m/s2
+
 char validchar (string y) {
     char value;
     while (true){
@@ -139,17 +139,17 @@ int chooseMaterial()
     materials[choice - 1].display_material_properties();
     return choice - 1;
 }
-class circle
+class circle    
 {
 public:
-    double r, l,m,p,I,mP,alphaMax,yield,stepRatio;
+    double r, l,m,p,mP,alphaMax,yield,stepRatio;
     long double Area ()
     {
-        return r*r*M_PI ;
+        return r*r*M_PI ; //gives mm^2
     }
     long double Inertia()
     {
-        return (M_PI * pow(r, 4)) / 4.0;
+        return (M_PI * pow(r, 4)) / 4.0; //gives mm^4
     }
     long double circMaxStress()
     {
@@ -165,7 +165,7 @@ public:
     }    // gives N.m
 
 };
-class rectangle
+class rectangle 
 {
 public:
     double h, b,l,mP,alphaMax,p,yield,stepRatio; // height hwa h w width hwa b
@@ -243,7 +243,6 @@ public:
         this -> mass = mass;
         this -> diameter = diameter;
         this -> width = width;
-
     }
 
     // fn output l properties
