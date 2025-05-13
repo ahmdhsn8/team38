@@ -106,8 +106,7 @@ public:
         return yield_strength;
     }
 };
-vector <Material> materials =
-{
+vector <Material> materials ={
     Material("Steel", 247, 7.58),
     Material("Cast Iron", 130, 7.3),
     Material("Copper Nickel", 130, 8.94),
