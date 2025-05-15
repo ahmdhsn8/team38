@@ -4,6 +4,7 @@
 #include <vector>
 #include <limits>
 #include <string>
+#include <regex>
 using namespace std;
 const double g = 9.81; //m/s2
 class rectangle;
@@ -29,48 +30,78 @@ char validchar (string y) {
     return value;
 }
 
-double ValidDouble(string prompt)
+double ValidDouble(string prompt)   // Function to validate and read a double input
 {
+    string input;
+    regex validPattern("^[0-9]+(\\.[0-9]+)?$"); // Only numbers and optional decimal
     double value;
+
     while (true)
     {
         cout << prompt;
-        cin >> value;
-        if (!cin.fail()&& value>0 ) break;
-        cin.clear(); // clear error flag
+        cin >> input;
+
+        if (regex_match(input, validPattern))
+        {
+                value = stod(input);
+                if (value > 0) {
+                    
+                    return value;
+                    break;
+                }
+                
+        }  
+
+        cout << "Invalid input. Please enter a positive number with no special characters.\n";
+        cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        cout << "Invalid input. Please enter a number.\n";
-        continue;
     }
-    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // remove leftover newline
-    return value;
 }
 
-int ValidInt( int min, int max)
+
+
+int ValidInt(int min, int max) // Function to validate and read an integer input
 {
+    string input;
+    regex validPattern("^[0-9]+$");   // Only numbers
     int value;
     while (true)
     {
-        cout << "Enter the number of the material you want to select: ";
-        cin >> value;
-        if (!cin.fail() && value >= min && value <= max) break;
+        cout << "Enter a number between " << min << " and " << max << ": ";
+        cin >> input;
+        if (regex_match(input, validPattern))
+        {
+                value = stoi(input);
+                if (value >= min && value <= max) {
+                    return value;
+                    break;
+                }
+
+        } 
+
+        cout << "Invalid input. Please enter a valid integer within range.\n";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        cout << "Invalid input. Please enter a number between " << min << " and " << max << ".\n";
-        continue;
     }
-    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // remove leftover newline
-    return value;
 }
 
-string ValidString(string y)
+string ValidString(string prompt)
 {
     string value;
-    cout << y;
-    getline(cin >> ws, value);
-    return value;
-}
+    regex validPattern("^[A-Za-z0-9]+$");  // Only alphanumeric characters
 
+    while (true) {
+        cout << prompt;
+        getline(cin >> ws, value);
+
+        if (regex_match(value, validPattern)) {
+            return value;
+        } else {
+            cout << "Invalid input. Please avoid special characters.\n";
+        }
+    }
+}
+// Function to validate and read a string input
 
 class Material
 {
@@ -330,7 +361,7 @@ public:
         cout << "Mass: "<<mass<<" Kg\n";
         cout << "Diameter: "<<diameter<<" mm\n";
         cout << "Width: "<< width<< " mm\n";
-        cout << "Efficency: "<< eff<< " %\n";
+        cout << "Efficency: "<< eff*100<< " %\n";
     }
 
 };
@@ -535,7 +566,7 @@ void flow_func_rec(rectangle & T)  //hanwsal l7d as8r aw akbar mn sigma yield b 
             }
         }
     }
-    cout <<"\n number of iteration = "<<iter<<"\n";
+    cout << "\nNumber of iterations = " << iter << "\n";
     if (iter >= max_iter)
     {
         cout << "\n Optimization failed: reached max iterations.\n";
