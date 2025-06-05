@@ -5,10 +5,12 @@
 #include <limits>
 #include <string>
 #include <regex>
+
 using namespace std;
+
 const double g = 9.81; //m/s2
-class rectangle;
-class circle;
+class link;
+string crossSectionShape;
 
 char validchar (string y) {
     char value;
@@ -22,10 +24,11 @@ char validchar (string y) {
             cout << "Invalid input. Please enter (y/n) \n " ;
             cin.clear(); // clear error flag
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        }   
+        }
     }
     return value;
 }
+
 double ValidDouble(string prompt)   // Function to validate and read a double input
 {
     string input;
@@ -41,18 +44,19 @@ double ValidDouble(string prompt)   // Function to validate and read a double in
         {
                 value = stod(input);
                 if (value > 0) {
-                    
+
                     return value;
                     break;
                 }
-                
-        }  
+
+        }
 
         cout << "Invalid input. Please enter a positive number with no special characters.\n";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 }
+
 int ValidInt(int min, int max) // Function to validate and read an integer input
 {
     string input;
@@ -70,7 +74,7 @@ int ValidInt(int min, int max) // Function to validate and read an integer input
                     break;
                 }
 
-        } 
+        }
 
         cout << "Invalid input. Please enter a valid integer within range.\n";
         cin.clear();
@@ -130,6 +134,7 @@ public:
         return yield_strength;
     }
 };
+
 vector <Material> materials ={
     Material("Steel", 247, 7.58),
     Material("Cast Iron", 130, 7.3),
@@ -162,112 +167,47 @@ int chooseMaterial()
     materials[choice - 1].display_material_properties();
     return choice - 1;
 }
-class circle    
-{
-    private:
-    double r, l,m,p,mP,alphaMax,yield,stepRatio;
-    public:
-    circle(double r =0,double l=0 ,double m =0 ,double p =0 ,double mP=0  ,double alphaMax=0 , double yield =0 ,double stepRatio=0 )
-    {
-        this-> r=r;
-        this-> l=l;
-        this-> m=m;
-        this-> p=p;
-        this-> mP=mP;
-        this-> alphaMax=alphaMax;
-        this-> yield=yield;
-        this-> stepRatio=stepRatio;
-    }
-    double getmP(){return mP;}
-    double getl(){return l;}
-    double getalphaMax(){return alphaMax;}
-    long double Area ()
-    {
-        return r*r*M_PI ; //gives mm^2
-    }
-    long double Inertia()
-    {
-        return (M_PI * pow(r, 4)) / 4.0; //gives mm^4
-    }
-    long double circMaxStress()
-    {
-        return (bendingMoment()*1000*r)/Inertia(); //gives MPa
-    }
-    long double circMass()
-    {
-        return p*M_PI*pow(r,2)*l*pow(10,-6); // gives kilogram
-    }
-    long double bendingMoment()
-    {
-        return (circMass()*9.81*l*0.5*pow(10,-3) + mP*9.81*l*pow(10,-3) + (circMass() *pow((0.5*l*pow(10,-3)),2) *alphaMax + mP*pow(l*pow(10,-3),2)*alphaMax));
-    }    // gives N.m
 
-    void handleCircle(const Material& selected, circle& C1)
-    {
-    r = ValidDouble("\nCircle radius (mm): ");
-    l = ValidDouble("Member length (mm): ");
-    p = selected.getDensity();
-    yield = selected.getYieldStrength();
-    mP = ValidDouble("Payload (kg): ");
-    alphaMax = ValidDouble("Max angular acceleration (rad/s²): ");
-    stepRatio = ValidDouble("Step ratio (%) [default 1%]: ");
-    flow_func_circ("Circle", C1);
-
-    cout << "\n--- Optimization Complete ---\n"
-         << "Final Radius: " << r << " mm\n"
-         << "Final Stress: " << circMaxStress() << " MPa\n"
-         << "Bending Moment: " << bendingMoment() << " Nm\n"
-         << "Mass: " << circMass() << " kg\n";
-    }
-void flow_func_circ(const string shapeType, circle & C)  //hanwsal l7d as8r aw akbar mn sigma yield b 0.1
-{
-    double sigma_calc= circMaxStress();
-    //cout<<sigma_calc<<"\n";
-    double sigma_yield= yield;
-    long long int max_iter=pow(10,10);
-    int iter=0;
-    double stepRatio =1;
-    if (shapeType=="Circle" && sigma_calc < sigma_yield)
-    {
-        while (sigma_calc < (sigma_yield - 0.5)  ) //&& iter < max_iter
+//Selection of Cross Section
+    void crossSectionSelection(){
+        string x;
+        while (true)
         {
-            r -= stepRatio /100 * r;
-            sigma_calc = circMaxStress();
-            //cout << C.r<<"\n";
-            //cout<< sigma_calc<<"\n";
-            iter++;
+            cout << "\nEnter cross-section type (circle/rectangle): ";
+            cin >> x;
+            if (x == "circle" || x == "Circle" || x == "c")
+            {
+                crossSectionShape = "circle";
+                break;
+            }
+            else if (x == "rectangle" || x == "Rectangle" || x == "r")
+            {
+                crossSectionShape = "rectangle";
+                break;
+            }
+            else
+            {
+                cout << "Invalid input. Please enter 'circle' or 'rectangle'.\n";
+            }
         }
     }
-    else if (shapeType=="Circle" && sigma_calc > sigma_yield )
-    {
-        while (sigma_calc > (sigma_yield + 0.5)  ) //&& iter < max_iter
-        {
-            r += stepRatio /100 * r;
-            sigma_calc = circMaxStress();
-            //cout << C.r<<"\n";
-            //cout<< sigma_calc<<"\n";
-            iter++;
-        }
-        //cout << C.r<<"\n";
-        //cout<< sigma_calc<<"\n";
-    }
-    cout <<"\n number of iteration = "<<iter<<"\n";
-    if (iter >= max_iter)
-    {
-        cout << "\n Optimization failed: reached max iterations.\n";
-    }
-}
 
-};
-class rectangle 
+class link
 {
-    private:
-    double h, b,l,mP,alphaMax,p,yield,stepRatio;
-    public:
-    rectangle(double h =0,double b=0 ,double l=0 , double mP=0  ,double alphaMax=0 ,double p=0 , double yield =0 ,double stepRatio=0 )
+private:
+    /*
+    h: height | b: base | r: radius | l: Length | m: idk | p: density
+    mP: mass payload | alphaMax: max angular acc | yield: yield strength | stepRatio: idk
+    */
+    double h, b, r, l, p, mP, alphaMax, yield, stepRatio;
+public:
+
+    //Constructor
+    link(double h =0, double b =0, double r =0, double l=0, double p =0, double mP=0, double alphaMax=0, double yield =0, double stepRatio=0)
     {
         this-> h=h;
         this-> b=b;
+        this-> r=r;
         this-> l=l;
         this-> p=p;
         this-> mP=mP;
@@ -275,132 +215,221 @@ class rectangle
         this-> yield=yield;
         this-> stepRatio=stepRatio;
     }
-     // height hwa h w width hwa b
-    long double Area ()
+
+    void handlingLinkShape(Material selected, link &L1, string crossSection){
+        if (crossSection == "circle"){
+            handleCircle(selected, L1);
+        }
+        else if (crossSection == "rectangle"){
+            handleRectangle(selected, L1);
+        }
+    }
+
+    //getter functions
+    double getmP()
+    {
+        return mP;
+    }
+    double getl()
+    {
+        return l;
+    }
+    double getalphaMax()
+    {
+        return alphaMax;
+    }
+
+    //main link properties function
+    //Rectangle Properties
+    long double AreaRec()
     {
         return h*b ;
     }
-    long double Inertia()
+    long double InertiaRec()
     {
         return (b * pow(h, 3)) / 12.0;
     }
-    long double recMaxStress ()
+    long double MaxStressRec()
     {
-        return (bendingMoment()*1000*h)/(2*Inertia());
+        return (bendingMomentRec()*1000*h)/(2*InertiaRec());
     }
     //Rectangle
-    long double recMass()
+    long double MassRec()
     {
         return p*b*h*l*pow(10,-6);
     }
-    long double bendingMoment()
+    long double bendingMomentRec()
     {
-        return recMass()*9.81*l*pow(10,-3)*0.5 + mP*9.81*l*pow(10,-3) + (recMass() *pow((0.5*l*pow(10,-3)),2) *alphaMax + mP*pow(l*pow(10,-3),2)*alphaMax);
+        return MassRec()*9.81*l*pow(10,-3)*0.5 + mP*9.81*l*pow(10,-3) + (MassRec() *pow((0.5*l*pow(10,-3)),2) *alphaMax + mP*pow(l*pow(10,-3),2)*alphaMax);
     }
-    void handleRectangle(const Material& selected, rectangle& T1)
+
+    //Circle Properties
+    long double AreaCirc()
     {
-    h = ValidDouble("\nRectangle height (mm): ");
-    b = ValidDouble("Rectangle width (mm): ");
-    l = ValidDouble("Member length (mm): ");
-    p = selected.getDensity();
-    yield = selected.getYieldStrength();
-    mP = ValidDouble("Payload (kg): ");
-    alphaMax = ValidDouble("Max angular acceleration (rad/s²): ");
-    stepRatio = ValidDouble("Step ratio (%) [default 1%]: ");
-    flow_func_rec(T1);
-    cout << "\n--- Optimization Complete ---\n"
-         << "Final Height: " << h << " mm\n"
-         << "Final Width: " << b << " mm\n"
-         << "Final Stress: " << recMaxStress() << " MPa\n"
-         << "Bending Moment: " << bendingMoment() << " Nm\n"
-         << "Mass: " << recMass() << " kg\n";
-}
-    void flow_func_rec(rectangle & T)  //hanwsal l7d as8r aw akbar mn sigma yield b 0.1
+        return r*r*M_PI ; //gives mm^2
+    }
+    long double InertiaCirc()
     {
-    double sigma_calc= recMaxStress();
-    double sigma_yield= yield;
-    long long int max_iter= pow(10,10);
-    int iter=0;
-    double stepRatio =1;
-    if (sigma_calc < sigma_yield)
+        return (M_PI * pow(r, 4)) / 4.0; //gives mm^4
+    }
+    long double MaxStressCirc()
     {
-        while (sigma_calc < (sigma_yield - 2) && iter < max_iter)
-        {
-            b -= stepRatio /100 * b;
-            h -= stepRatio /100 * h;
-            sigma_calc = recMaxStress();
-            // cout << T.b<<"\n";
-            // cout << T.h <<"\n";
-            // cout<< sigma_calc<<"\n";
-            iter++;
-        }
-        if (b > h)
+        return (bendingMomentCirc()*1000*r)/InertiaCirc(); //gives MPa
+    }
+    long double MassCirc()
+    {
+        return p*M_PI*pow(r,2)*l*pow(10,-6); // gives kilogram
+    }
+    long double bendingMomentCirc()
+    {
+        return (MassCirc()*9.81*l*0.5*pow(10,-3) + mP*9.81*l*pow(10,-3) + (MassCirc() *pow((0.5*l*pow(10,-3)),2) *alphaMax + mP*pow(l*pow(10,-3),2)*alphaMax));
+    }    // gives N.m
+
+
+    //Handling Functions For Call after selecting Material
+    //Rectangle Handling Function
+    void handleRectangle(const Material& selected, link& T1)
+    {
+        h = ValidDouble("\nRectangle height (mm): ");
+        b = ValidDouble("Rectangle width (mm): ");
+        l = ValidDouble("Member length (mm): ");
+        p = selected.getDensity();
+        yield = selected.getYieldStrength();
+        mP = ValidDouble("Payload (kg): ");
+        alphaMax = ValidDouble("Max angular acceleration (rad/s²): ");
+        stepRatio = ValidDouble("Step ratio (%) [default 1%]: ");
+        flow_func_rec(T1);
+        cout << "\n--- Optimization Complete ---\n"
+             << "Final Height: " << h << " mm\n"
+             << "Final Width: " << b << " mm\n"
+             << "Final Stress: " << MaxStressRec() << " MPa\n"
+             << "Bending Moment: " << bendingMomentRec() << " Nm\n"
+             << "Mass: " << MassRec() << " kg\n";
+    }
+    //Circle Handling Function
+    void handleCircle(const Material& selected, link& C1)
+    {
+        r = ValidDouble("\nCircle radius (mm): ");
+        l = ValidDouble("Member length (mm): ");
+        p = selected.getDensity();
+        yield = selected.getYieldStrength();
+        mP = ValidDouble("Payload (kg): ");
+        alphaMax = ValidDouble("Max angular acceleration (rad/s²): ");
+        stepRatio = ValidDouble("Step ratio (%) [default 1%]: ");
+        flow_func_circ("Circle", C1);
+
+        cout << "\n--- Optimization Complete ---\n"
+             << "Final Radius: " << r << " mm\n"
+             << "Final Stress: " << MaxStressCirc() << " MPa\n"
+             << "Bending Moment: " << bendingMomentCirc() << " Nm\n"
+             << "Mass: " << MassCirc() << " kg\n";
+    }
+
+    //Flow Function For the iterative logic of the program
+    //Rectangle Flow Function
+    void flow_func_rec(link & T)  //hanwsal l7d as8r aw akbar mn sigma yield b 0.1
+    {
+        double sigma_calc= MaxStressRec();
+        double sigma_yield= yield;
+        long long int max_iter= pow(10,10);
+        int iter=0;
+        double stepRatio =1;
+
+        if (sigma_calc < sigma_yield)
         {
             while (sigma_calc < (sigma_yield - 2) && iter < max_iter)
             {
-                b -=0.0001 * b;
-                // T.h -=0.0001 * T.h;
-                sigma_calc = recMaxStress();
-                //cout << T.b<<"\n";
-                //cout<< sigma_calc<<"\n";
+                b -= stepRatio /100 * b;
+                h -= stepRatio /100 * h;
+                sigma_calc = MaxStressRec();
                 iter++;
+            }
+            if (b > h)
+            {
+                while (sigma_calc < (sigma_yield - 2) && iter < max_iter)
+                {
+                    b -=0.0001 * b;
+                    sigma_calc = MaxStressRec();
+                    iter++;
+                }
+            }
+            else
+            {
+                while (sigma_calc < (sigma_yield -2) && iter < max_iter)
+                {
+                    h -=0.0001 * h;
+                    sigma_calc = MaxStressRec();
+                    iter++;
+                }
             }
         }
-        else
+        else if (sigma_calc > sigma_yield )
         {
-            while (sigma_calc < (sigma_yield -2) && iter < max_iter)
+            while (sigma_calc > (sigma_yield + 2)  && iter < max_iter )
             {
-                h -=0.0001 * h;
-                sigma_calc = recMaxStress();
-                //cout << T.b<<"\n";
-                //cout<< sigma_calc<<"\n";
+                b += stepRatio /100 * b;
+                h += stepRatio /100 * h;
+                sigma_calc =MaxStressRec();
                 iter++;
             }
+            if (b < h)
+            {
+                while (sigma_calc > (sigma_yield + 2) && iter < max_iter)
+                {
+                    b +=0.0001 * b;
+                    sigma_calc = MaxStressRec();
+                    iter++;
+                }
+            }
+            else
+            {
+                while (sigma_calc > (sigma_yield + 2) && iter < max_iter)
+                {
+                    h +=0.0001 * h;
+                    sigma_calc = MaxStressRec();
+                    iter++;
+                }
+            }
+        }
+        cout << "\nNumber of iterations = " << iter << "\n";
+        if (iter >= max_iter)
+        {
+            cout << "\n Optimization failed: reached max iterations.\n";
         }
     }
-    else if (sigma_calc > sigma_yield )
+    //Circle Flow Function
+    void flow_func_circ(const string shapeType, link & C)  //hanwsal l7d as8r aw akbar mn sigma yield b 0.1
     {
-        while (sigma_calc > (sigma_yield + 2)  && iter < max_iter )
+        double sigma_calc= MaxStressCirc();
+        double sigma_yield= yield;
+        long long int max_iter=pow(10,10);
+        int iter=0;
+        double stepRatio =1;
+
+        if (shapeType=="Circle" && sigma_calc < sigma_yield)
         {
-            b += stepRatio /100 * b;
-            h += stepRatio /100 * h;
-            sigma_calc =recMaxStress();
-            //cout << T.b<<"\n";
-            //cout << T.h <<"\n";
-            //cout<< sigma_calc<<"\n";
-            iter++;
-        }
-        if (b < h)
-        {
-            while (sigma_calc > (sigma_yield + 2) && iter < max_iter)
+            while (sigma_calc < (sigma_yield - 0.5)  ) //&& iter < max_iter
             {
-                b +=0.0001 * b;
-                //T.h +=0.0001 * T.h;
-                sigma_calc = recMaxStress();
-                //cout << T.b<<"\n";
-                //cout<< sigma_calc<<"\n";
+                r -= stepRatio /100 * r;
+                sigma_calc = MaxStressCirc();
                 iter++;
             }
         }
-        else
+        else if (shapeType=="Circle" && sigma_calc > sigma_yield )
         {
-            while (sigma_calc > (sigma_yield + 2) && iter < max_iter)
+            while (sigma_calc > (sigma_yield + 0.5)  ) //&& iter < max_iter
             {
-                h +=0.0001 * h;
-                //T.h +=0.0001 * T.h;
-                sigma_calc = recMaxStress();
-                //cout << T.b<<"\n";
-                //cout<< sigma_calc<<"\n";
+                r += stepRatio /100 * r;
+                sigma_calc = MaxStressCirc();
                 iter++;
             }
         }
+        cout <<"\n number of iteration = "<<iter<<"\n";
+        if (iter >= max_iter)
+        {
+            cout << "\n Optimization failed: reached max iterations.\n";
+        }
     }
-    cout << "\nNumber of iterations = " << iter << "\n";
-    if (iter >= max_iter)
-    {
-        cout << "\n Optimization failed: reached max iterations.\n";
-    }
-}
 };
 
 class Motor
@@ -441,7 +470,7 @@ vector<Motor> motors;
 void adding_motors()//ha7tag a7ot adding_motors(); fel main ... matensash //
 {
     while (true){
-    
+
         cout << "\nAdding a new Motor:\n";
 
         string name = ValidString("Enter Motor Name: ");
@@ -589,164 +618,21 @@ double cost(double m, double d, double w)
 {
     return m+ d/100 + w/100;
 }
-/*
-void flow_func_circ(const string shapeType, circle & C)  //hanwsal l7d as8r aw akbar mn sigma yield b 0.1
-{
-    double sigma_calc= C.circMaxStress();
-    //cout<<sigma_calc<<"\n";
-    double sigma_yield= C.yield;
-    long long int max_iter=pow(10,10);
-    int iter=0;
-    double stepRatio =1;
-    if (shapeType=="Circle" && sigma_calc < sigma_yield)
-    {
-        while (sigma_calc < (sigma_yield - 0.5)  ) //&& iter < max_iter
-        {
-            C.r -= C.stepRatio /100 * C.r;
-            sigma_calc = C.circMaxStress();
-            //cout << C.r<<"\n";
-            //cout<< sigma_calc<<"\n";
-            iter++;
 
-        }
-
-    }
-    else if (shapeType=="Circle" && sigma_calc > sigma_yield )
-    {
-        while (sigma_calc > (sigma_yield + 0.5)  ) //&& iter < max_iter
-        {
-            C.r += C.stepRatio /100 * C.r;
-            sigma_calc = C.circMaxStress();
-            //cout << C.r<<"\n";
-            //cout<< sigma_calc<<"\n";
-            iter++;
-        }
-        //cout << C.r<<"\n";
-        //cout<< sigma_calc<<"\n";
-    }
-    cout <<"\n number of iteration = "<<iter<<"\n";
-    if (iter >= max_iter)
-    {
-        cout << "\n Optimization failed: reached max iterations.\n";
-    }
-}*/
-/*
-void flow_func_rec(rectangle & T)  //hanwsal l7d as8r aw akbar mn sigma yield b 0.1
-{
-    double sigma_calc= T.recMaxStress();
-    double sigma_yield= T.yield;
-    long long int max_iter= pow(10,10);
-    int iter=0;
-    double stepRatio =1;
-    if (sigma_calc < sigma_yield)
-    {
-        while (sigma_calc < (sigma_yield - 2) && iter < max_iter)
-        {
-            T.b -= T.stepRatio /100 * T.b;
-            T.h -= T.stepRatio /100 * T.h;
-            sigma_calc = T.recMaxStress();
-            // cout << T.b<<"\n";
-            // cout << T.h <<"\n";
-            // cout<< sigma_calc<<"\n";
-            iter++;
-        }
-        if (T.b > T.h)
-        {
-            while (sigma_calc < (sigma_yield - 2) && iter < max_iter)
-            {
-                T.b -=0.0001 * T.b;
-                // T.h -=0.0001 * T.h;
-                sigma_calc = T.recMaxStress();
-                //cout << T.b<<"\n";
-                //cout<< sigma_calc<<"\n";
-                iter++;
-            }
-        }
-        else
-        {
-            while (sigma_calc < (sigma_yield -2) && iter < max_iter)
-            {
-                T.h -=0.0001 * T.h;
-                sigma_calc = T.recMaxStress();
-                //cout << T.b<<"\n";
-                //cout<< sigma_calc<<"\n";
-                iter++;
-            }
-        }
-    }
-    else if (sigma_calc > sigma_yield )
-    {
-        while (sigma_calc > (sigma_yield + 2)  && iter < max_iter )
-        {
-            T.b += T.stepRatio /100 * T.b;
-            T.h += T.stepRatio /100 * T.h;
-            sigma_calc = T.recMaxStress();
-            //cout << T.b<<"\n";
-            //cout << T.h <<"\n";
-            //cout<< sigma_calc<<"\n";
-            iter++;
-        }
-        if (T.b < T.h)
-        {
-            while (sigma_calc > (sigma_yield + 2) && iter < max_iter)
-            {
-                T.b +=0.0001 * T.b;
-                //T.h +=0.0001 * T.h;
-                sigma_calc = T.recMaxStress();
-                //cout << T.b<<"\n";
-                //cout<< sigma_calc<<"\n";
-                iter++;
-            }
-        }
-        else
-        {
-            while (sigma_calc > (sigma_yield + 2) && iter < max_iter)
-            {
-                T.h +=0.0001 * T.h;
-                //T.h +=0.0001 * T.h;
-                sigma_calc = T.recMaxStress();
-                //cout << T.b<<"\n";
-                //cout<< sigma_calc<<"\n";
-                iter++;
-            }
-        }
-    }
-    cout << "\nNumber of iterations = " << iter << "\n";
-    if (iter >= max_iter)
-    {
-        cout << "\n Optimization failed: reached max iterations.\n";
-    }
-}*/
 
 int main()
 {
+    link L1;
+
     int materialIndex = chooseMaterial();
     Material selected = materials[materialIndex];
-    circle C1 ;
-    string x ;
-    rectangle T1;
-    while (true)
-    {
-        cout << "\nEnter cross-section type (circle/rectangle): ";
-        cin >> x;
-        if (x == "circle" || x == "Circle" || x == "c")
-        {
-            C1.handleCircle(selected, C1);
-            break;
-        }
-        else if (x == "rectangle" || x == "Rectangle" || x == "r")
-        {
-            T1.handleRectangle(selected, T1);
-            break;
-        }
-        else
-        {
-            cout << "Invalid input. Please enter 'circle' or 'rectangle'.\n";
-        }
-    }
+
+    crossSectionSelection();
+    L1.handlingLinkShape(selected, L1, crossSectionShape);
+
     adding_motors();
     adding_gearboxes();
-    double Treq = torqueRec(C1.circMass(), C1.getl()/1000, C1.getmP(), C1.getalphaMax());
+    double Treq = torqueRec(L1.MassCirc(), L1.getl()/1000, L1.getmP(), L1.getalphaMax());
     double Wreq = 1000;
     vector <Pairs> PairsV;
 
