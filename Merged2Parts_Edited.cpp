@@ -166,7 +166,8 @@ class circle
     private:
     double r, l,m,p,mP,alphaMax,yield,stepRatio,safetyFactor;
     public:
-    circle(double r =0,double l=0 ,double m =0 ,double p =0 ,double mP=0  ,double alphaMax=0 , double yield =0 ,double stepRatio=1 , double safetyFactor=90 )
+    circle() : r(0), l(0), m(0), p(0), mP(0), alphaMax(0), yield(0), stepRatio(1), safetyFactor(90) {}
+    circle(double r ,double l ,double m  ,double p ,double mP  ,double alphaMax , double yield ,double stepRatio , double safetyFactor )
     {
         this-> r=r;
         this-> l=l;
@@ -259,7 +260,8 @@ class rectangle
     private:
     double h, b,l,mP,alphaMax,p,yield,stepRatio,safetyFactor;
     public:
-    rectangle(double h =0,double b=0 ,double l=0 , double mP=0  ,double alphaMax=0 ,double p=0 , double yield =0 ,double stepRatio=1 , double safetyFactor=90)
+    rectangle(): h(0), b(0), l(0), mP(0), alphaMax(0), p(0),yield(0), stepRatio(1), safetyFactor(90) {}
+    rectangle(double h,double b ,double l , double mP,double alphaMax,double p, double yield,double stepRatio, double safetyFactor)
     {
         this-> h=h;
         this-> b=b;
