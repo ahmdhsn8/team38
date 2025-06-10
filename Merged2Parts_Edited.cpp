@@ -13,41 +13,42 @@ class link;
 double Treq;
 double Wreq;
 
-char validchar (string y)
+char validchar (string y) // Function to validate and read a character input
 {
-    char value;
-    while (true)
+    char value; // Variable to store the input character
+    while (true) // Loop until a valid input is received
     {
         cout << y;
         cin >> value;
-        if (value =='y'||value =='n'||value =='Y'||value =='N')
+        if (value =='y'||value =='n'||value =='Y'||value =='N') // Check if the input is either 'y' or 'n' (case insensitive)
         {
             break;
-        }
-        else
+        }   
+        else // If the input is not valid, prompt the user again
         {
             cout << "[!] Invalid input. Please enter (y/n) \n " ;
             cin.clear(); // clear error flag
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // ignore the rest of the line
+            // This will ignore the rest of the line until a newline character is found
         }
     }
     return value;
 }
 double ValidDouble(string prompt)   // Function to validate and read a double input
 {
-    string input;
+    string input; // Variable to store the input string
     regex validPattern("^[0-9]+(\\.[0-9]+)?$"); // Only numbers and optional decimal
-    double value;
+    double value; // Variable to store the converted double value
 
-    while (true)
+    while (true) // Loop until a valid input is received
     {
-        cout << prompt;
-        cin >> input;
+        cout << prompt; // Prompt the user for input
+        cin >> input; // Read the input from the user
 
-        if (regex_match(input, validPattern))
+        if (regex_match(input, validPattern)) // Check if the input matches the valid pattern
         {
             value = stod(input);
-            if (value > 0)
+            if (value > 0) // Check if the value is positive
             {
 
                 return value;
@@ -57,23 +58,23 @@ double ValidDouble(string prompt)   // Function to validate and read a double in
         }
 
         cout << "[!] Invalid input. Please enter a positive number with no special characters.\n";
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cin.clear(); // Clear the error flag on cin
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');    // Ignore the rest of the line until a newline character is found
     }
 }
 int ValidInt(int min, int max) // Function to validate and read an integer input
 {
-    string input;
+    string input; // Variable to store the input string
     regex validPattern("^[0-9]+$");   // Only numbers
-    int value;
-    while (true)
+    int value; // Variable to store the converted integer value
+    while (true) // Loop until a valid input is received
     {
         cout << "[+] Enter a number between " << min << " and " << max << ": ";
         cin >> input;
-        if (regex_match(input, validPattern))
-        {
-            value = stoi(input);
-            if (value >= min && value <= max)
+        if (regex_match(input, validPattern)) // Check if the input matches the valid pattern
+        { 
+            value = stoi(input); // Convert the input string to an integer
+            if (value >= min && value <= max) // Check if the value is within the specified range
             {
                 return value;
                 break;
@@ -82,21 +83,21 @@ int ValidInt(int min, int max) // Function to validate and read an integer input
         }
 
         cout << "[!] Invalid input. Please enter a valid integer within range.\n";
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cin.clear(); // Clear the error flag on cin
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Ignore the rest of the line until a newline character is found
     }
 }
-string ValidString(string prompt)
+string ValidString(string prompt) // Function to validate and read a string input
 {
-    string value;
+    string value; // Variable to store the input string
     regex validPattern("^[A-Za-z0-9]+$");  // Only alphanumeric characters
 
-    while (true)
+    while (true) // Loop until a valid input is received
     {
-        cout << prompt;
-        getline(cin >> ws, value);
+        cout << prompt; // Prompt the user for input
+        getline(cin >> ws, value); // Read the input from the user, ignoring leading whitespace
 
-        if (regex_match(value, validPattern))
+        if (regex_match(value, validPattern)) // Check if the input matches the valid pattern
         {
             return value;
         }
@@ -106,7 +107,6 @@ string ValidString(string prompt)
         }
     }
 }
-// Function to validate and read a string input
 
 //Torque calculation
 //Required Torque Calculation
@@ -121,21 +121,19 @@ double torqueMotorGear(double tMotor, double ratio, double efficency)
     return tMotor*ratio*efficency;
 }
 
-class Material
+class Material   // Class to represent a material with its properties
 {
-protected:
+protected: 
     string name;
     double yield_strength,density;
 public:
-    //function constructor bta3 input l material
-    Material(string name, double yield_strength, double density)
+    Material(string name, double yield_strength, double density) // Constructor to initialize the material properties
     {
         this-> name = name;
         this-> yield_strength= yield_strength;
         this-> density=density;
     }
-    //fn output l properties
-    void display_material_properties() const
+    void display_material_properties() const // Function to display the material properties
     {
 
         cout<<"\n| Material: " << name;
@@ -143,21 +141,22 @@ public:
         cout<<"\n| Density: "<<density<<" g/cm^3\n";
         double chosen_yield =yield_strength;
     }
-    string getName() const
+
+    string getName() const // Function to get the name of the material
     {
         return name;
     }
-    double getDensity()const
+    double getDensity()const // Function to get the density of the material
     {
         return density;
     }
-    double getYieldStrength() const
+    double getYieldStrength() const // Function to get the yield strength of the material
     {
         return yield_strength;
     }
 };
 
-class link
+class link // Class to represent a link with its properties and methods for calculations
 {
 private:
     /*
@@ -169,8 +168,8 @@ private:
     string crossSectionShape;
 public:
 
-    //Constructor
-    link(double h =0, double b =0, double r =0, double l=0, double p =0, double mP=0, double alphaMax=0, double yield =0, double stepRatio=1, double safetyFactor = 100)
+    // Constructor to initialize the link properties
+    link(double h =0, double b =0, double r =0, double l=0, double p =0, double mP=0, double alphaMax=0, double yield =0, double stepRatio=1, double safetyFactor = 100) 
     {
         this-> h=h;
         this-> b=b;
@@ -197,19 +196,19 @@ public:
     }
 
     //getter functions
-    double getmP()
+    double getmP() // Function to get the mass payload
     {
         return mP;
     }
-    double getl()
+    double getl() // Function to get the length of the link
     {
         return l;
     }
-    double getalphaMax()
+    double getalphaMax() // Function to get the maximum angular acceleration
     {
         return alphaMax;
     }
-    double getsafetyFactor()
+    double getsafetyFactor() // Function to get the safety factor
     {
         return safetyFactor;
     }
@@ -261,24 +260,24 @@ public:
     }
 
     //Selection of Cross Section
-    void crossSectionSelection()
+    void crossSectionSelection() // Function to select the type of cross-section
     {
-        string x;
-        while (true)
+        string x; // Variable to store user input
+        while (true) // Loop until a valid input is received
         {
             cout << "\n[+] Enter cross-section type (circle/rectangle): ";
             cin >> x;
-            if (x == "circle" || x == "Circle" || x == "c")
+            if (x == "circle" || x == "Circle" || x == "c") // Check for circle input
             {
                 crossSectionShape = "circle";
                 break;
             }
-            else if (x == "rectangle" || x == "Rectangle" || x == "r")
+            else if (x == "rectangle" || x == "Rectangle" || x == "r") // Check for rectangle input
             {
                 crossSectionShape = "rectangle";
                 break;
             }
-            else
+            else // If the input is not valid, prompt the user again
             {
                 cout << "[!] Invalid input. Please enter 'circle' or 'rectangle'.\n";
             }
@@ -430,7 +429,7 @@ public:
         cout<<"Diameter: "<<diameter<<" mm"<<"\n";
         cout<<"Width: "<<width<<" mm"<<"\n";
     }
-    string getName()
+    string getName() const // Function to get the name of the motor
     {
         return this->name;
     }
@@ -490,7 +489,7 @@ public:
 
 };
 
-vector <Material> materials =
+vector <Material> materials = // List of all materials with their properties
 {
     Material("Steel", 247, 7.58),
     Material("Cast Iron", 130, 7.3),
