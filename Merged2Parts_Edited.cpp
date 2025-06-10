@@ -141,39 +141,6 @@ public:
         return yield_strength;
     }
 };
-vector <Material> materials =
-{
-    Material("Steel", 247, 7.58),
-    Material("Cast Iron", 130, 7.3),
-    Material("Copper Nickel", 130, 8.94),
-    Material("Brass", 200, 8.73),
-    Material("Aluminium", 241, 2.7),
-    Material("Acrylic", 72, 1.16),
-    Material("Copper", 70, 8.92),
-    Material("Stainless Steel", 275, 7.86),
-    Material("Tungsten", 941, 19.75)
-};
-
-int chooseMaterial()
-{
-    cout << "Choose a material:\n";
-    for (int i = 0; i < materials.size(); i++)
-        cout << i + 1 << "- " << materials[i].getName() << "\n";
-    cout << materials.size() + 1 << "- New Material\n";
-
-    int choice = ValidInt(1, materials.size() + 1);
-
-    if (choice == materials.size() + 1)
-    {
-        string newName = ValidString("New Material Name: ");
-        double newYield = ValidDouble("Yield Strength (MPa): ");
-        double newDensity = ValidDouble("Density (g/cm^3): ");
-        materials.emplace_back(newName, newYield, newDensity);
-        choice = materials.size();
-    }
-    materials[choice - 1].display_material_properties();
-    return choice - 1;
-}
 
 class link
 {
@@ -447,8 +414,193 @@ public:
     }
 
 };
+
+class Gearbox
+{
+public:
+    string name;
+    double redRatio;
+    double mass;
+    double diameter;
+    double width;
+    double eff;
+    Gearbox() {}
+    Gearbox(string name, double redRatio, double mass, double diameter, double width, double eff)
+    {
+        this -> name = name;
+        this -> redRatio = redRatio;
+        this -> mass = mass;
+        this -> diameter = diameter;
+        this -> width = width;
+        this -> eff = eff;
+    }
+
+    void display_gear_properties()
+    {
+        cout << "Model: "<<name<<"\n";
+        cout << "Reduction Ratio: "<<redRatio<<"\n";
+        cout << "Mass: "<<mass<<" Kg\n";
+        cout << "Diameter: "<<diameter<<" mm\n";
+        cout << "Width: "<< width<< " mm\n";
+        cout << "Efficency: "<< eff*100<< " %\n";
+    }
+
+};
+
+class Pairs
+{
+public:
+    Motor* M_REF;
+    Gearbox* G_REF;
+    float Tout,Wout,cost,Mtotal,Dtotal,Wtotal;
+    Pairs() {}
+    Pairs(Motor &MID, Gearbox &GID)
+    {
+        this -> M_REF = &MID;
+        this -> G_REF = &GID;
+    }
+
+};
+
+vector <Material> materials =
+{
+    Material("Steel", 247, 7.58),
+    Material("Cast Iron", 130, 7.3),
+    Material("Copper Nickel", 130, 8.94),
+    Material("Brass", 200, 8.73),
+    Material("Aluminium", 241, 2.7),
+    Material("Acrylic", 72, 1.16),
+    Material("Copper", 70, 8.92),
+    Material("Stainless Steel", 275, 7.86),
+    Material("Tungsten", 941, 19.75)
+};
+
 // List of all motors
-vector<Motor> motors;
+vector<Motor> motors
+{
+    Motor("Motor 1", 0.322, 6650, 225, 50, 22),
+    Motor("Motor 2", 1.710, 3410, 741, 85, 33),
+    Motor("Motor 3", 0.430, 4330, 270, 50, 27),
+    Motor("Motor 5", 0.688, 4570, 377, 65, 25),
+    Motor("Motor 6", 1.130, 2590, 524, 65, 33),
+    Motor("Motor 7", 0.186, 6290, 170, 38, 25),
+    Motor("Motor 8", 0.097, 12400, 125, 38, 19)
+};
+
+// List of all gearboxes
+vector<Gearbox> gearboxes
+{
+    Gearbox("GB 12 worm gear", 30/1, 1.5, 12, 62, 65),
+    Gearbox("Planetary gearhead GP 42 A", 1296/1, .56,42,155.6,64),
+    Gearbox("Planetary Gearhead GP 16 A Ø16 mm, Sleeve Bearing", 4.4/1, .02, 16, 52.3, .9)
+};
+
+vector <Pairs> PairsV;
+
+//Torque calculation
+//Required Torque Calculation
+double torqueRec(double ml, double l, double mp, double sig)
+{
+    return ml*9.81*l*0.5+mp*9.81*l+ml*pow((l*0.5),2)*sig +mp*pow(l,2)*sig;
+}
+//Motor gear box output tourque calculation
+double torqueMotorGear(double tMotor, double ratio, double efficency)
+{
+    return tMotor*ratio*efficency;
+}
+//Motor-Gearbox output speed calculation
+double speedMotorGear(double w, double ratio )
+{
+    return w*ratio;
+}
+//Compute Cost fn
+double cost(double m, double d, double w)
+{
+    return m+ d/100 + w/100;
+}
+
+void getRequiredPairs(double Treq, double Wreq)
+{
+    for (int i = 0; i < motors.size(); i++)
+    {
+        for (int j = 0; j < gearboxes.size(); j++)
+        {
+            double Tout = torqueMotorGear(motors[i].torque, gearboxes[j].redRatio, gearboxes[j].eff);
+            double Wout = speedMotorGear(motors[i].speed, gearboxes[j].redRatio);
+            if((Tout >= Treq) && (Wout >= Wreq))
+            {
+                Pairs tempPair;
+                tempPair.M_REF = &motors[i];
+                tempPair.G_REF = &gearboxes[j];
+                PairsV.push_back(tempPair);
+            }
+        }
+    }
+}
+
+void printPairs(vector <Pairs> &PairsV)
+{
+    if(PairsV.size() == 0)
+    {
+        cout << "No Pairs capable of lifting this mass!"<<endl;
+    }
+    else
+    {
+        for (int j = 0; j < PairsV.size(); j++)
+        {
+            cout << "Pair No {" << j+1 << "}: " << PairsV[j].M_REF->getName() << " with " << PairsV[j].G_REF->name << endl;
+        }
+    }
+}
+
+vector <Pairs> Edit_dimensions(vector <Pairs> &PairsV)
+{
+    char answer;
+    answer = validchar ( "\nfilter motors and grarboxs by equal diameters? (y/n): " ) ;
+
+    if ( answer == 'y' || answer == 'Y' )
+    {
+        vector <Pairs> sameDimesion_pairs;
+        for (int i = 0; i < PairsV.size() ; i++)
+        {
+            // Check if the diameters of the motor and gearbox are equal
+            // If they are, add the pair to the sameDimesion_pairs vector
+            if (PairsV[i].M_REF->diameter == PairsV[i].G_REF->diameter)
+            {
+                sameDimesion_pairs.push_back(PairsV[i]);
+            }
+        }
+        return sameDimesion_pairs;
+    }
+    // If the user does not want to filter by equal diameters
+    else if (answer == 'n' || answer == 'N')
+    {
+        cout << "[*] The diameters for motor and gearbox will not be filtered.\n";
+        return PairsV;
+    }
+}
+
+int chooseMaterial()
+{
+    cout << "Choose a material:\n";
+    for (int i = 0; i < materials.size(); i++)
+        cout << i + 1 << "- " << materials[i].getName() << "\n";
+    cout << materials.size() + 1 << "- New Material\n";
+
+    int choice = ValidInt(1, materials.size() + 1);
+
+    if (choice == materials.size() + 1)
+    {
+        string newName = ValidString("New Material Name: ");
+        double newYield = ValidDouble("Yield Strength (MPa): ");
+        double newDensity = ValidDouble("Density (g/cm^3): ");
+        materials.emplace_back(newName, newYield, newDensity);
+        choice = materials.size();
+    }
+    materials[choice - 1].display_material_properties();
+    return choice - 1;
+}
+
 // the user keeps adding motors as much as he wants
 void adding_motors()//ha7tag a7ot adding_motors(); fel main ... matensash //
 {
@@ -489,41 +641,6 @@ void adding_motors()//ha7tag a7ot adding_motors(); fel main ... matensash //
         }
     }
 }
-
-
-class Gearbox
-{
-public:
-    string name;
-    double redRatio;
-    double mass;
-    double diameter;
-    double width;
-    double eff;
-    Gearbox() {}
-    Gearbox(string name, double redRatio, double mass, double diameter, double width, double eff)
-    {
-        this -> name = name;
-        this -> redRatio = redRatio;
-        this -> mass = mass;
-        this -> diameter = diameter;
-        this -> width = width;
-        this -> eff = eff;
-    }
-
-    void display_gear_properties()
-    {
-        cout << "Model: "<<name<<"\n";
-        cout << "Reduction Ratio: "<<redRatio<<"\n";
-        cout << "Mass: "<<mass<<" Kg\n";
-        cout << "Diameter: "<<diameter<<" mm\n";
-        cout << "Width: "<< width<< " mm\n";
-        cout << "Efficency: "<< eff*100<< " %\n";
-    }
-
-};
-// List of all gearboxes
-vector<Gearbox> gearboxes;
 // the user keeps adding gearboxes as much as he wants
 void adding_gearboxes()//ha7tag a7ot adding_gearboxes(); fel main ... matensash //
 {
@@ -564,84 +681,6 @@ void adding_gearboxes()//ha7tag a7ot adding_gearboxes(); fel main ... matensash 
     }
 }
 
-
-
-class Pairs
-{
-public:
-    Motor* M_REF;
-    Gearbox* G_REF;
-    float Tout,Wout,cost,Mtotal,Dtotal,Wtotal;
-    Pairs() {}
-    Pairs(Motor &MID, Gearbox &GID)
-    {
-        this -> M_REF = &MID;
-        this -> G_REF = &GID;
-    }
-
-};
-
-//Torque calculation
-//Required Torque Calculation
-double torqueRec(double ml, double l, double mp, double sig)
-{
-    return ml*9.81*l*0.5+mp*9.81*l+ml*pow((l*0.5),2)*sig +mp*pow(l,2)*sig;
-}
-//Motor gear box output tourque calculation
-double torqueMotorGear(double tMotor, double ratio, double efficency)
-{
-    return tMotor*ratio*efficency;
-}
-//Motor-Gearbox output speed calculation
-double speedMotorGear(double w, double ratio )
-{
-    return w*ratio;
-}
-//Compute Cost fn
-double cost(double m, double d, double w)
-{
-    return m+ d/100 + w/100;
-}
-
-
-vector <Pairs> Edit_dimensions(vector <Pairs> &PairsV)
-{
-    char answer;
-    answer = validchar ( "\n filter motors and grarboxs by equal diameters? (y/n): " ) ;
-    if ( answer == 'y' || answer == 'Y' )
-    {
-        vector <Pairs> sameDimesion_pairs;
-
-        for (int i = 0; i < PairsV.size() ; i++)
-        {
-            // Check if the diameters of the motor and gearbox are equal
-            // If they are, add the pair to the sameDimesion_pairs vector
-            if (PairsV[i].M_REF->diameter == PairsV[i].G_REF->diameter)
-            {
-                sameDimesion_pairs.push_back(PairsV[i]);
-            }
-        }
-
-        for (int i = 0; i < sameDimesion_pairs.size(); i++)
-        {
-            cout << "Pair No {" << i << "}: " << sameDimesion_pairs[i].M_REF->getName() << " with " << sameDimesion_pairs[i].G_REF->name << endl;
-            cout << "Motor Diameter: " << sameDimesion_pairs[i].M_REF->diameter << " mm, Gearbox Diameter: " << sameDimesion_pairs[i].G_REF->diameter << " mm\n";
-        }
-        if (sameDimesion_pairs.size() == 0)
-        {
-            cout << "No pairs with equal diameters found.\n";
-        }
-    }
-    // If the user does not want to filter by equal diameters
-
-    else if (answer == 'n' || answer == 'N')
-    {
-        cout << "the diameters for motor and gearbox will remain the same.\n";
-    }
-    return PairsV; // Return the original vector if no filtering is applied
-}
-
-
 int main()
 {
     link L1;
@@ -654,39 +693,13 @@ int main()
 
     adding_motors();
     adding_gearboxes();
+
     double Treq = torqueRec(L1.MassCirc(), L1.getl()/1000, L1.getmP(), L1.getalphaMax());
-    double Wreq = 1000;
-    vector <Pairs> PairsV;
+    double Wreq = ValidDouble("What is your required speed? [rpm]: ")*2*M_PI/60;
 
-    for (int i = 0; i < motors.size(); i++)
-    {
-        for (int j = 0; j < gearboxes.size(); j++)
-        {
-            double Tout = torqueMotorGear(motors[i].torque, gearboxes[j].redRatio, gearboxes[j].eff);
-            double Wout = speedMotorGear(motors[i].speed, gearboxes[j].redRatio);
-            if(Tout >= Treq)
-            {
-                Pairs tempPair;
-                tempPair.M_REF = &motors[i];
-                tempPair.G_REF = &gearboxes[j];
-                PairsV.push_back(tempPair);
-            }
-        }
-    }
+    getRequiredPairs(Treq, Wreq);
 
-    Edit_dimensions(PairsV);
-
-
-    if(PairsV.size() == 0)
-    {
-        cout << "No Pairs capable of lifting this mass!"<<endl;
-    }
-    else
-    {
-        for (int j = 0; j < PairsV.size(); j++)
-        {
-            cout << "Pair No {" << j << "}: " << PairsV[j].M_REF->getName() << " with " << PairsV[j].G_REF->name << endl;
-        }
-    }
+    PairsV = Edit_dimensions(PairsV);
+    printPairs(PairsV);
 
 }
