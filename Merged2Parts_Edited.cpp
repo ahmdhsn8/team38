@@ -5,23 +5,29 @@
 #include <limits>
 #include <string>
 #include <regex>
+
 using namespace std;
+
 const double g = 9.81; //m/s2
-class rectangle;
-class circle;
-char validchar (string y) {
+class link;
+
+char validchar (string y)
+{
     char value;
-    while (true){
+    while (true)
+    {
         cout << y;
         cin >> value;
-        if (value =='y'||value =='n'||value =='Y'||value =='N'){
+        if (value =='y'||value =='n'||value =='Y'||value =='N')
+        {
             break;
         }
-        else{
+        else
+        {
             cout << "Invalid input. Please enter (y/n) \n " ;
             cin.clear(); // clear error flag
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        }   
+        }
     }
     return value;
 }
@@ -38,14 +44,15 @@ double ValidDouble(string prompt)   // Function to validate and read a double in
 
         if (regex_match(input, validPattern))
         {
-                value = stod(input);
-                if (value > 0) {
-                    
-                    return value;
-                    break;
-                }
-                
-        }  
+            value = stod(input);
+            if (value > 0)
+            {
+
+                return value;
+                break;
+            }
+
+        }
 
         cout << "Invalid input. Please enter a positive number with no special characters.\n";
         cin.clear();
@@ -63,13 +70,14 @@ int ValidInt(int min, int max) // Function to validate and read an integer input
         cin >> input;
         if (regex_match(input, validPattern))
         {
-                value = stoi(input);
-                if (value >= min && value <= max) {
-                    return value;
-                    break;
-                }
+            value = stoi(input);
+            if (value >= min && value <= max)
+            {
+                return value;
+                break;
+            }
 
-        } 
+        }
 
         cout << "Invalid input. Please enter a valid integer within range.\n";
         cin.clear();
@@ -82,13 +90,17 @@ string ValidString(string prompt)
     string value;
     regex validPattern("^[A-Za-z0-9]+$");  // Only alphanumeric characters
 
-    while (true) {
+    while (true)
+    {
         cout << prompt;
         getline(cin >> ws, value);
 
-        if (regex_match(value, validPattern)) {
+        if (regex_match(value, validPattern))
+        {
             return value;
-        } else {
+        }
+        else
+        {
             cout << "Invalid input. Please avoid special characters.\n";
         }
     }
@@ -129,7 +141,8 @@ public:
         return yield_strength;
     }
 };
-vector <Material> materials ={
+vector <Material> materials =
+{
     Material("Steel", 247, 7.58),
     Material("Cast Iron", 130, 7.3),
     Material("Copper Nickel", 130, 8.94),
@@ -161,110 +174,24 @@ int chooseMaterial()
     materials[choice - 1].display_material_properties();
     return choice - 1;
 }
-class circle    
-{
-    private:
-    double r, l,m,p,mP,alphaMax,yield,stepRatio,safetyFactor;
-    public:
-    circle() : r(0), l(0), m(0), p(0), mP(0), alphaMax(0), yield(0), stepRatio(1), safetyFactor(90) {}
-    circle(double r ,double l ,double m  ,double p ,double mP  ,double alphaMax , double yield ,double stepRatio , double safetyFactor )
-    {
-        this-> r=r;
-        this-> l=l;
-        this-> m=m;
-        this-> p=p;
-        this-> mP=mP;
-        this-> alphaMax=alphaMax;
-        this-> yield=yield;
-        this-> stepRatio=stepRatio;
-        this-> safetyFactor=safetyFactor;
-    }
-    double getmP(){return mP;}
-    double getl(){return l;}
-    double getalphaMax(){return alphaMax;}
-    double getsafetyFactor(){return safetyFactor;}
-    long double Area ()
-    {
-        return r*r*M_PI ; //gives mm^2
-    }
-    long double Inertia()
-    {
-        return (M_PI * pow(r, 4)) / 4.0; //gives mm^4
-    }
-    long double circMaxStress()
-    {
-        return (bendingMoment()*1000*r)/Inertia(); //gives MPa
-    }
-    long double circMass()
-    {
-        return p*M_PI*pow(r,2)*l*pow(10,-6); // gives kilogram
-    }
-    long double bendingMoment()
-    {
-        return (circMass()*9.81*l*0.5*pow(10,-3) + mP*9.81*l*pow(10,-3) + (circMass() *pow((0.5*l*pow(10,-3)),2) *alphaMax + mP*pow(l*pow(10,-3),2)*alphaMax));
-    }    // gives N.m
 
-    void handleCircle(const Material& selected, circle& C1)
-    {
-    r = ValidDouble("\nCircle radius (mm): ");
-    l = ValidDouble("Member length (mm): ");
-    p = selected.getDensity();
-    yield = selected.getYieldStrength();
-    mP = ValidDouble("Payload (kg): ");
-    alphaMax = ValidDouble("Max angular acceleration (rad/s²): ");
-    stepRatio = ValidDouble("Step ratio (%) [default 1%]: ");
-    safetyFactor = ValidDouble("Safety factor (%) [default 90% from yield]: ");
-    flow_func_circ("Circle", C1);
-
-    cout << "\n--- Optimization Complete ---\n"
-         << "Final Radius: " << r << " mm\n"
-         << "Final Stress: " << circMaxStress() << " MPa\n"
-         << "Bending Moment: " << bendingMoment() << " Nm\n"
-         << "Mass: " << circMass() << " kg\n";
-    }
-void flow_func_circ(const string shapeType, circle & C)  //hanwsal l7d as8r aw akbar mn sigma yield b 0.1
+class link
 {
-    double sigma_calc= circMaxStress();
-    //cout<<sigma_calc<<"\n";
-    double sigma_yield= yield;
-    long long int max_iter=pow(10,10);
-    int iter=0;
-    if (shapeType=="Circle" && sigma_calc < sigma_yield)
-    {
-        while (sigma_calc < (safetyFactor/100 * sigma_yield)) //&& iter < max_iter
-        {
-            r -= stepRatio /100 * r;
-            sigma_calc = circMaxStress();
-            iter++;
-        }
-    }
-    else if (shapeType=="Circle" && sigma_calc > sigma_yield )
-    {
-        while (sigma_calc > (safetyFactor/100 * sigma_yield)  ) //&& iter < max_iter
-        {
-            r += stepRatio /100 * r;
-            sigma_calc = circMaxStress();
-            iter++;
-        }
-    }
-    cout <<"\n number of iteration = "<<iter<<"\n";
-    if (iter >= max_iter)
-    {
-        cout << "\n Optimization failed: reached max iterations.\n";
-    }
-}
+private:
+    /*
+    h: height | b: base | r: radius | l: Length | m: idk | p: density
+    mP: mass payload | alphaMax: max angular acc | yield: yield strength | stepRatio: idk
+    */
+    double h, b, r, l, p, mP, alphaMax, yield, stepRatio, safetyFactor; //justify why safety factor is double not float
+    string crossSectionShape;
+public:
 
-};
-class rectangle 
-{
-    private:
-    double h, b,l,mP,alphaMax,p,yield,stepRatio,safetyFactor;
-    public:
-    rectangle(): h(0), b(0), l(0), mP(0), alphaMax(0), p(0),yield(0), stepRatio(1), safetyFactor(90) {}
-    rectangle(double h,double b ,double l , double mP,double alphaMax,double p, double yield,double stepRatio, double safetyFactor)
+    //Constructor
+    link(double h =0, double b =0, double r =0, double l=0, double p =0, double mP=0, double alphaMax=0, double yield =0, double stepRatio=0, double safetyFactor = 100)
     {
         this-> h=h;
         this-> b=b;
+        this-> r=r;
         this-> l=l;
         this-> p=p;
         this-> mP=mP;
@@ -273,79 +200,219 @@ class rectangle
         this-> stepRatio=stepRatio;
         this-> safetyFactor=safetyFactor;
     }
-     // height hwa h w width hwa b
-    long double Area ()
+
+    void handlingLinkShape(Material selected, link &L1)
+    {
+        if (this->crossSectionShape == "circle")
+        {
+            handleCircle(selected, L1);
+        }
+        else if (this->crossSectionShape == "rectangle")
+        {
+            handleRectangle(selected, L1);
+        }
+    }
+
+    //getter functions
+    double getmP()
+    {
+        return mP;
+    }
+    double getl()
+    {
+        return l;
+    }
+    double getalphaMax()
+    {
+        return alphaMax;
+    }
+    double getsafetyFactor()
+    {
+        return safetyFactor;
+    }
+
+    //main link properties function
+    //Rectangle Properties
+    long double AreaRec()
     {
         return h*b ;
     }
-    long double Inertia()
+    long double InertiaRec()
     {
         return (b * pow(h, 3)) / 12.0;
     }
-    long double recMaxStress ()
+    long double MaxStressRec()
     {
-        return (bendingMoment()*1000*h)/(2*Inertia());
+        return (bendingMomentRec()*1000*h)/(2*InertiaRec());
     }
     //Rectangle
-    long double recMass()
+    long double MassRec()
     {
         return p*b*h*l*pow(10,-6);
     }
-    long double bendingMoment()
+    long double bendingMomentRec()
     {
-        return recMass()*9.81*l*pow(10,-3)*0.5 + mP*9.81*l*pow(10,-3) + (recMass() *pow((0.5*l*pow(10,-3)),2) *alphaMax + mP*pow(l*pow(10,-3),2)*alphaMax);
+        return MassRec()*9.81*l*pow(10,-3)*0.5 + mP*9.81*l*pow(10,-3) + (MassRec() *pow((0.5*l*pow(10,-3)),2) *alphaMax + mP*pow(l*pow(10,-3),2)*alphaMax);
     }
-    void handleRectangle(const Material& selected, rectangle& T1)
+
+    //Circle Properties
+    long double AreaCirc()
     {
-    h = ValidDouble("\nRectangle height (mm): ");
-    b = ValidDouble("Rectangle width (mm): ");
-    l = ValidDouble("Member length (mm): ");
-    p = selected.getDensity();
-    yield = selected.getYieldStrength();
-    mP = ValidDouble("Payload (kg): ");
-    alphaMax = ValidDouble("Max angular acceleration (rad/s²): ");
-    stepRatio = ValidDouble("Step ratio (%) [default 1%]: ");
-    safetyFactor = ValidDouble("Safety factor (%) [default 90% from yield]: ");
-    flow_func_rec(T1);
-    cout << "\n--- Optimization Complete ---\n"
-         << "Final Height: " << h << " mm\n"
-         << "Final Width: " << b << " mm\n"
-         << "Final Stress: " << recMaxStress() << " MPa\n"
-         << "Bending Moment: " << bendingMoment() << " Nm\n"
-         << "Mass: " << recMass() << " kg\n";
-}
-    void flow_func_rec(rectangle & T)  //hanwsal l7d as8r aw akbar mn sigma yield b 0.1
+        return r*r*M_PI ; //gives mm^2
+    }
+    long double InertiaCirc()
     {
-    double sigma_calc= recMaxStress();
-    double sigma_yield= yield;
-    long long int max_iter= pow(10,10);
-    int iter=0;
-    if (sigma_calc < sigma_yield)
+        return (M_PI * pow(r, 4)) / 4.0; //gives mm^4
+    }
+    long double MaxStressCirc()
     {
-        while (sigma_calc < (safetyFactor/100 * sigma_yield) && iter < max_iter)
+        return (bendingMomentCirc()*1000*r)/InertiaCirc(); //gives MPa
+    }
+    long double MassCirc()
+    {
+        return p*M_PI*pow(r,2)*l*pow(10,-6); // gives kilogram
+    }
+    long double bendingMomentCirc()
+    {
+        return (MassCirc()*9.81*l*0.5*pow(10,-3) + mP*9.81*l*pow(10,-3) + (MassCirc() *pow((0.5*l*pow(10,-3)),2) *alphaMax + mP*pow(l*pow(10,-3),2)*alphaMax));
+    }    // gives N.m
+
+    //Selection of Cross Section
+    void crossSectionSelection()
+    {
+        string x;
+        while (true)
         {
-            b -= stepRatio /100 * b;
-            h -= stepRatio /100 * h;
-            sigma_calc = recMaxStress();
-            iter++;
+            cout << "\nEnter cross-section type (circle/rectangle): ";
+            cin >> x;
+            if (x == "circle" || x == "Circle" || x == "c")
+            {
+                crossSectionShape = "circle";
+                break;
+            }
+            else if (x == "rectangle" || x == "Rectangle" || x == "r")
+            {
+                crossSectionShape = "rectangle";
+                break;
+            }
+            else
+            {
+                cout << "Invalid input. Please enter 'circle' or 'rectangle'.\n";
+            }
         }
     }
-    else if (sigma_calc > sigma_yield )
+
+    //Handling Functions For Call after selecting Material
+    //Rectangle Handling Function
+    void handleRectangle(const Material& selected, link& T1)
     {
-        while (sigma_calc > (safetyFactor/100  * sigma_yield)  && iter < max_iter )
+        h = ValidDouble("\nRectangle height (mm): ");
+        b = ValidDouble("Rectangle width (mm): ");
+        l = ValidDouble("Member length (mm): ");
+        p = selected.getDensity();
+        yield = selected.getYieldStrength();
+        mP = ValidDouble("Payload (kg): ");
+        alphaMax = ValidDouble("Max angular acceleration (rad/s^2): ");
+        stepRatio = ValidDouble("Step ratio (%) [default 1%]: ");
+        safetyFactor = ValidDouble("Safety factor (%) [default 100% from yield]: ");
+        flow_func_rec(T1);
+        cout << "\n--- Optimization Complete ---\n"
+             << "Final Height: " << h << " mm\n"
+             << "Final Width: " << b << " mm\n"
+             << "Final Stress: " << MaxStressRec() << " MPa\n"
+             << "Bending Moment: " << bendingMomentRec() << " Nm\n"
+             << "Mass: " << MassRec() << " kg\n";
+    }
+    //Circle Handling Function
+    void handleCircle(const Material& selected, link& C1)
+    {
+        r = ValidDouble("\nCircle radius (mm): ");
+        l = ValidDouble("Member length (mm): ");
+        p = selected.getDensity();
+        yield = selected.getYieldStrength();
+        mP = ValidDouble("Payload (kg): ");
+        alphaMax = ValidDouble("Max angular acceleration (rad/s^2): ");
+        stepRatio = ValidDouble("Step ratio (%) [default 1%]: ");
+        safetyFactor = ValidDouble("Safety factor (%) [default 100% from yield]: ");
+        flow_func_circ("Circle", C1);
+
+        cout << "\n--- Optimization Complete ---\n"
+             << "Final Radius: " << r << " mm\n"
+             << "Final Stress: " << MaxStressCirc() << " MPa\n"
+             << "Bending Moment: " << bendingMomentCirc() << " Nm\n"
+             << "Mass: " << MassCirc() << " kg\n";
+    }
+
+    //Flow Function For the iterative logic of the program
+    //Rectangle Flow Function
+    void flow_func_rec(link & T)  //hanwsal l7d as8r aw akbar mn sigma yield b 0.1
+    {
+        double sigma_calc= MaxStressRec();
+        double sigma_yield= yield;
+        long long int max_iter= pow(10,10);
+        int iter=0;
+        double stepRatio =1;
+
+        if (sigma_calc < sigma_yield)
         {
-            b += stepRatio /100 * b;
-            h += stepRatio /100 * h;
-            sigma_calc =recMaxStress();
-            iter++;
+            while (sigma_calc < (safetyFactor/100 * sigma_yield) && iter < max_iter)
+            {
+                b -= stepRatio /100 * b;
+                h -= stepRatio /100 * h;
+                sigma_calc = MaxStressRec();
+                iter++;
+            }
+        }
+        else if (sigma_calc > sigma_yield )
+        {
+            while (sigma_calc > (safetyFactor/100  * sigma_yield)  && iter < max_iter )
+            {
+                b += stepRatio /100 * b;
+                h += stepRatio /100 * h;
+                sigma_calc = MaxStressRec();
+                iter++;
+            }
+        }
+        cout << "\nNumber of iterations = " << iter << "\n";
+        if (iter >= max_iter)
+        {
+            cout << "\n Optimization failed: reached max iterations.\n";
         }
     }
-    cout << "\nNumber of iterations = " << iter << "\n";
-    if (iter >= max_iter)
+
+    //Circle Flow Function
+    void flow_func_circ(const string shapeType, link & C)  //hanwsal l7d as8r aw akbar mn sigma yield b 0.1
     {
-        cout << "\n Optimization failed: reached max iterations.\n";
+        double sigma_calc= MaxStressCirc();
+        double sigma_yield= yield;
+        long long int max_iter=pow(10,10);
+        int iter=0;
+        double stepRatio =1;
+
+        if (shapeType=="Circle" && sigma_calc < sigma_yield)
+        {
+            while (sigma_calc < (safetyFactor/100 * sigma_yield)  ) //&& iter < max_iter
+            {
+                r -= stepRatio /100 * r;
+                sigma_calc = MaxStressCirc();
+                iter++;
+            }
+        }
+        else if (shapeType=="Circle" && sigma_calc > sigma_yield )
+        {
+            while (sigma_calc > (safetyFactor/100 * sigma_yield)  ) //&& iter < max_iter
+            {
+                r += stepRatio /100 * r;
+                sigma_calc = MaxStressCirc();
+                iter++;
+            }
+        }
+        cout <<"\n number of iteration = "<<iter<<"\n";
+        if (iter >= max_iter)
+        {
+            cout << "\n Optimization failed: reached max iterations.\n";
+        }
     }
-}
 };
 
 class Motor
@@ -385,8 +452,9 @@ vector<Motor> motors;
 // the user keeps adding motors as much as he wants
 void adding_motors()//ha7tag a7ot adding_motors(); fel main ... matensash //
 {
-    while (true){
-    
+    while (true)
+    {
+
         cout << "\nAdding a new Motor:\n";
 
         string name = ValidString("Enter Motor Name: ");
@@ -419,7 +487,7 @@ void adding_motors()//ha7tag a7ot adding_motors(); fel main ... matensash //
         {
             cout << "Adding another motor...\n";
         }
-}
+    }
 }
 
 
@@ -483,7 +551,7 @@ void adding_gearboxes()//ha7tag a7ot adding_gearboxes(); fel main ... matensash 
 
         // Ask if they want to add another
         char choice;
-         choice = validchar ("\nDo you want to add another gearbox? (y/n): ") ;
+        choice = validchar ("\nDo you want to add another gearbox? (y/n): ") ;
         if (choice == 'N'|| choice == 'n')
         {
             cout << "Exiting Gearbox addition.\n";
@@ -527,7 +595,7 @@ double torqueMotorGear(double tMotor, double ratio, double efficency)
 //Motor-Gearbox output speed calculation
 double speedMotorGear(double w, double ratio )
 {
-    return w*ratio; // it was written w*ratio but in pdf it is w/ratio please solve it 
+    return w*ratio;
 }
 //Compute Cost fn
 double cost(double m, double d, double w)
@@ -536,65 +604,60 @@ double cost(double m, double d, double w)
 }
 
 
-vector <Pairs> Edit_dimensions(vector <Pairs> &PairsV){
+vector <Pairs> Edit_dimensions(vector <Pairs> &PairsV)
+{
     char answer;
     answer = validchar ( "\n filter motors and grarboxs by equal diameters? (y/n): " ) ;
     if ( answer == 'y' || answer == 'Y' )
-     { 
-        vector <Pairs> sameDimesion_pairs;
-    
-        for (int i = 0; i < PairsV.size() ; i++) 
-            {
-                // Check if the diameters of the motor and gearbox are equal
-                // If they are, add the pair to the sameDimesion_pairs vector
-             if (PairsV[i].M_REF->diameter == PairsV[i].G_REF->diameter) { sameDimesion_pairs.push_back(PairsV[i]);}
-            }
-
-    for (int i = 0; i < sameDimesion_pairs.size(); i++) 
     {
-        cout << "Pair No {" << i << "}: " << sameDimesion_pairs[i].M_REF->getName() << " with " << sameDimesion_pairs[i].G_REF->name << endl;
-        cout << "Motor Diameter: " << sameDimesion_pairs[i].M_REF->diameter << " mm, Gearbox Diameter: " << sameDimesion_pairs[i].G_REF->diameter << " mm\n";
-    } 
-        if (sameDimesion_pairs.size() == 0) { cout << "No pairs with equal diameters found.\n";} 
+        vector <Pairs> sameDimesion_pairs;
+
+        for (int i = 0; i < PairsV.size() ; i++)
+        {
+            // Check if the diameters of the motor and gearbox are equal
+            // If they are, add the pair to the sameDimesion_pairs vector
+            if (PairsV[i].M_REF->diameter == PairsV[i].G_REF->diameter)
+            {
+                sameDimesion_pairs.push_back(PairsV[i]);
+            }
+        }
+
+        for (int i = 0; i < sameDimesion_pairs.size(); i++)
+        {
+            cout << "Pair No {" << i << "}: " << sameDimesion_pairs[i].M_REF->getName() << " with " << sameDimesion_pairs[i].G_REF->name << endl;
+            cout << "Motor Diameter: " << sameDimesion_pairs[i].M_REF->diameter << " mm, Gearbox Diameter: " << sameDimesion_pairs[i].G_REF->diameter << " mm\n";
+        }
+        if (sameDimesion_pairs.size() == 0)
+        {
+            cout << "No pairs with equal diameters found.\n";
+        }
     }
     // If the user does not want to filter by equal diameters
 
-else if (answer == 'n' || answer == 'N') { cout << "the diameters for motor and gearbox will remain the same.\n";  }
+    else if (answer == 'n' || answer == 'N')
+    {
+        cout << "the diameters for motor and gearbox will remain the same.\n";
+    }
     return PairsV; // Return the original vector if no filtering is applied
 }
 
 
 int main()
 {
+    link L1;
+
     int materialIndex = chooseMaterial();
     Material selected = materials[materialIndex];
-    circle C1 ;
-    string x ;
-    rectangle T1;
-    while (true)
-    {
-        cout << "\nEnter cross-section type (circle/rectangle): ";
-        cin >> x;
-        if (x == "circle" || x == "Circle" || x == "c")
-        {
-            C1.handleCircle(selected, C1);
-            break;
-        }
-        else if (x == "rectangle" || x == "Rectangle" || x == "r")
-        {
-            T1.handleRectangle(selected, T1);
-            break;
-        }
-        else
-        {
-            cout << "Invalid input. Please enter 'circle' or 'rectangle'.\n";
-        }
-    }
+
+    L1.crossSectionSelection();
+    L1.handlingLinkShape(selected, L1);
+
     adding_motors();
     adding_gearboxes();
-    double Treq = torqueRec(C1.circMass(), C1.getl()/1000, C1.getmP(), C1.getalphaMax());
+    double Treq = torqueRec(L1.MassCirc(), L1.getl()/1000, L1.getmP(), L1.getalphaMax());
     double Wreq = 1000;
     vector <Pairs> PairsV;
+
     for (int i = 0; i < motors.size(); i++)
     {
         for (int j = 0; j < gearboxes.size(); j++)
@@ -612,7 +675,7 @@ int main()
     }
 
     Edit_dimensions(PairsV);
-    
+
 
     if(PairsV.size() == 0)
     {
