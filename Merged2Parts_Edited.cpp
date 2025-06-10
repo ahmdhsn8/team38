@@ -1,6 +1,6 @@
 #define _USE_MATH_DEFINES  // 34an el pi t4ta8al
-#include<iostream>
-#include<cmath>
+#include <iostream>
+#include <cmath>
 #include <vector>
 #include <limits>
 #include <string>
@@ -8,7 +8,7 @@
 
 using namespace std;
 
-const double g = 9.81; //m/s2
+const double g = 9.81; //m/s^2
 class link;
 double Treq;
 double Wreq;
@@ -161,15 +161,16 @@ class link
 {
 private:
     /*
-    h: height | b: base | r: radius | l: Length | m: idk | p: density
-    mP: mass payload | alphaMax: max angular acc | yield: yield strength | stepRatio: idk
+    h: height | b: base | r: radius | l: Length | p: density
+    mP: mass payload | alphaMax: max angular acc | yield: yield strength | 
+    stepRatio: ratio of increment or decrement in optimization
     */
     double h, b, r, l, p, mP, alphaMax, yield, stepRatio, safetyFactor; //justify why safety factor is double not float
     string crossSectionShape;
 public:
 
     //Constructor
-    link(double h =0, double b =0, double r =0, double l=0, double p =0, double mP=0, double alphaMax=0, double yield =0, double stepRatio=0, double safetyFactor = 100)
+    link(double h =0, double b =0, double r =0, double l=0, double p =0, double mP=0, double alphaMax=0, double yield =0, double stepRatio=1, double safetyFactor = 100)
     {
         this-> h=h;
         this-> b=b;
@@ -215,24 +216,24 @@ public:
 
     //main link properties function
     //Rectangle Properties
-    long double AreaRec()
+    long double AreaRec()  // Area in mm^2
     {
         return h*b ;
     }
-    long double InertiaRec()
+    long double InertiaRec()  // Inertia in mm^4
     {
         return (b * pow(h, 3)) / 12.0;
     }
-    long double MaxStressRec()
+    long double MaxStressRec()  // Maximum Stress in MPa
     {
         return (bendingMomentRec()*1000*h)/(2*InertiaRec());
     }
     //Rectangle
-    long double MassRec()
+    long double MassRec()  // Link mass in kg
     {
         return p*b*h*l*pow(10,-6);
     }
-    long double bendingMomentRec()
+    long double bendingMomentRec()  // Bending Moment in N.m
     {
         return MassRec()*9.81*l*pow(10,-3)*0.5 + mP*9.81*l*pow(10,-3) + (MassRec() *pow((0.5*l*pow(10,-3)),2) *alphaMax + mP*pow(l*pow(10,-3),2)*alphaMax);
     }
@@ -240,24 +241,24 @@ public:
     //Circle Properties
     long double AreaCirc()
     {
-        return r*r*M_PI ; //gives mm^2
+        return r*r*M_PI ; // Area in mm^2
     }
     long double InertiaCirc()
     {
-        return (M_PI * pow(r, 4)) / 4.0; //gives mm^4
+        return (M_PI * pow(r, 4)) / 4.0; // Inertia in mm^4
     }
     long double MaxStressCirc()
     {
-        return (bendingMomentCirc()*1000*r)/InertiaCirc(); //gives MPa
+        return (bendingMomentCirc()*1000*r)/InertiaCirc(); // Maximum Stress in MPa
     }
     long double MassCirc()
     {
-        return p*M_PI*pow(r,2)*l*pow(10,-6); // gives kilogram
+        return p*M_PI*pow(r,2)*l*pow(10,-6); // Mass in kilogram
     }
-    long double bendingMomentCirc()
+    long double bendingMomentCirc()    // Bending Moment in N.m
     {
         return (MassCirc()*9.81*l*0.5*pow(10,-3) + mP*9.81*l*pow(10,-3) + (MassCirc() *pow((0.5*l*pow(10,-3)),2) *alphaMax + mP*pow(l*pow(10,-3),2)*alphaMax));
-    }    // gives N.m
+    }
 
     //Selection of Cross Section
     void crossSectionSelection()
@@ -320,7 +321,7 @@ public:
         Wreq = ValidDouble("[+] What is your required speed? [rpm]: ")*2*M_PI/60;
         stepRatio = ValidDouble("[+] Step ratio (%) [default 1%]: ");
         safetyFactor = ValidDouble("[+] Safety factor (%) [default 100% from yield]: ");
-        flow_func_circ("Circle", C1);
+        flow_func_circ(C1);
 
         cout << "\n--- Optimization Complete ---\n"
              << "| Final Radius: " << r << " mm\n"
@@ -331,74 +332,76 @@ public:
 
     //Flow Function For the iterative logic of the program
     //Rectangle Flow Function
-    void flow_func_rec(link & T)  //hanwsal l7d as8r aw akbar mn sigma yield b 0.1
+    void flow_func_rec(link &T)
+{
+    double sigma_calc = MaxStressRec();
+    double allowable = (safetyFactor / 100.0) * yield;
+    double tolerance = 0.01; // 0.01 MPa tolerance
+    long int max_iter = 100000;
+    int iter = 0;
+    while (abs(sigma_calc - allowable) > tolerance && iter < max_iter)
     {
-        double sigma_calc= MaxStressRec();
-        double sigma_yield= yield;
-        long long int max_iter= pow(10,10);
-        int iter=0;
-        double stepRatio =1;
+        if (sigma_calc > allowable)
+        {
+            b += (stepRatio / 100.0) * b;
+            h += (stepRatio / 100.0) * h;
+        }
+        else
+        {
+            b -= (stepRatio / 100.0) * b;
+            h -= (stepRatio / 100.0) * h;
+        }
 
-        if (sigma_calc < sigma_yield)
+        // Prevent unrealistic dimensions
+        if (b < 1.0 || h < 1.0)
         {
-            while (sigma_calc < (safetyFactor/100 * sigma_yield) && iter < max_iter)
-            {
-                b -= stepRatio /100 * b;
-                h -= stepRatio /100 * h;
-                sigma_calc = MaxStressRec();
-                iter++;
-            }
+            cout << "\n[!] Rectangle dimensions too small. Optimization aborted.\n";
+            break;
         }
-        else if (sigma_calc > sigma_yield )
-        {
-            while (sigma_calc > (safetyFactor/100  * sigma_yield)  && iter < max_iter )
-            {
-                b += stepRatio /100 * b;
-                h += stepRatio /100 * h;
-                sigma_calc = MaxStressRec();
-                iter++;
-            }
-        }
-        cout << "\n[*] Number of iterations = " << iter << "\n";
-        if (iter >= max_iter)
-        {
-            cout << "\n[!] Optimization failed: reached max iterations.\n";
-        }
+        sigma_calc = MaxStressRec();
+        iter++;
     }
+    if (iter >= max_iter)
+    {
+        cout << "\n[!] Rectangle optimization failed: max iterations reached.\n";
+    }
+}
+
 
     //Circle Flow Function
-    void flow_func_circ(const string shapeType, link & C)  //hanwsal l7d as8r aw akbar mn sigma yield b 0.1
-    {
-        double sigma_calc= MaxStressCirc();
-        double sigma_yield= yield;
-        long long int max_iter=pow(10,10);
-        int iter=0;
-        double stepRatio =1;
+void flow_func_circ(link &C)
+{
+    double sigma_calc = MaxStressCirc();
+    double allowable = (safetyFactor / 100.0) * yield;
+    double tolerance = 0.01; // 0.01 MPa tolerance
+    long int max_iter = 100000;
+    int iter = 0;
 
-        if (shapeType=="Circle" && sigma_calc < sigma_yield)
+    while (abs(sigma_calc - allowable) > tolerance && iter < max_iter)
+    {
+        if (sigma_calc > allowable)
         {
-            while (sigma_calc < (safetyFactor/100 * sigma_yield)  ) //&& iter < max_iter
-            {
-                r -= stepRatio /100 * r;
-                sigma_calc = MaxStressCirc();
-                iter++;
-            }
+            r += (stepRatio / 100.0) * r;
         }
-        else if (shapeType=="Circle" && sigma_calc > sigma_yield )
+        else
         {
-            while (sigma_calc > (safetyFactor/100 * sigma_yield)  ) //&& iter < max_iter
-            {
-                r += stepRatio /100 * r;
-                sigma_calc = MaxStressCirc();
-                iter++;
-            }
+            r -= (stepRatio / 100.0) * r;
         }
-        cout <<"\n[*] number of iteration = "<<iter<<"\n";
-        if (iter >= max_iter)
+        // Prevent unrealistic diameter
+        if (r < 1.0)
         {
-            cout << "\n[!] Optimization failed: reached max iterations.\n";
+            cout << "\n[!] Circle diameter too small. Optimization aborted.\n";
+            break;
         }
+        sigma_calc = MaxStressCirc();
+        iter++;
     }
+    if (iter >= max_iter)
+    {
+        cout << "\n[!] Circle optimization failed: max iterations reached.\n";
+    }
+}
+
 };
 
 class Motor
