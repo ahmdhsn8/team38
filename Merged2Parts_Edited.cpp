@@ -10,6 +10,8 @@ using namespace std;
 
 const double g = 9.81; //m/s2
 class link;
+double Treq;
+double Wreq;
 
 char validchar (string y)
 {
@@ -24,7 +26,7 @@ char validchar (string y)
         }
         else
         {
-            cout << "Invalid input. Please enter (y/n) \n " ;
+            cout << "[!] Invalid input. Please enter (y/n) \n " ;
             cin.clear(); // clear error flag
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
         }
@@ -54,7 +56,7 @@ double ValidDouble(string prompt)   // Function to validate and read a double in
 
         }
 
-        cout << "Invalid input. Please enter a positive number with no special characters.\n";
+        cout << "[!] Invalid input. Please enter a positive number with no special characters.\n";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
@@ -66,7 +68,7 @@ int ValidInt(int min, int max) // Function to validate and read an integer input
     int value;
     while (true)
     {
-        cout << "Enter a number between " << min << " and " << max << ": ";
+        cout << "[+] Enter a number between " << min << " and " << max << ": ";
         cin >> input;
         if (regex_match(input, validPattern))
         {
@@ -79,12 +81,11 @@ int ValidInt(int min, int max) // Function to validate and read an integer input
 
         }
 
-        cout << "Invalid input. Please enter a valid integer within range.\n";
+        cout << "[!] Invalid input. Please enter a valid integer within range.\n";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 }
-
 string ValidString(string prompt)
 {
     string value;
@@ -107,6 +108,19 @@ string ValidString(string prompt)
 }
 // Function to validate and read a string input
 
+//Torque calculation
+//Required Torque Calculation
+double torqueRec(double ml, double l, double mp, double sig)
+{
+    //check for overflows
+    return ml*9.81*l*0.5+mp*9.81*l+ml*pow((l*0.5),2)*sig +mp*pow(l,2)*sig;
+}
+//Motor gear box output tourque calculation
+double torqueMotorGear(double tMotor, double ratio, double efficency)
+{
+    return tMotor*ratio*efficency;
+}
+
 class Material
 {
 protected:
@@ -123,9 +137,10 @@ public:
     //fn output l properties
     void display_material_properties() const
     {
-        cout<<"Material: "<<name;
-        cout<<"\nYield Strength: "<<yield_strength<<" Mpa\n";
-        cout<<"Density: "<<density<<" g/cm³\n";
+        
+        cout<<"\n| Material: " << name;
+        cout<<"\n| Yield Strength: " << yield_strength << " Mpa";
+        cout<<"\n| Density: "<<density<<" g/cm^3\n";
         double chosen_yield =yield_strength;
     }
     string getName() const
@@ -250,7 +265,7 @@ public:
         string x;
         while (true)
         {
-            cout << "\nEnter cross-section type (circle/rectangle): ";
+            cout << "\n[+] Enter cross-section type (circle/rectangle): ";
             cin >> x;
             if (x == "circle" || x == "Circle" || x == "c")
             {
@@ -264,7 +279,7 @@ public:
             }
             else
             {
-                cout << "Invalid input. Please enter 'circle' or 'rectangle'.\n";
+                cout << "[!] Invalid input. Please enter 'circle' or 'rectangle'.\n";
             }
         }
     }
@@ -273,41 +288,45 @@ public:
     //Rectangle Handling Function
     void handleRectangle(const Material& selected, link& T1)
     {
-        h = ValidDouble("\nRectangle height (mm): ");
-        b = ValidDouble("Rectangle width (mm): ");
-        l = ValidDouble("Member length (mm): ");
+        h = ValidDouble("\n[+] Rectangle height (mm): ");
+        b = ValidDouble("[+] Rectangle width (mm): ");
+        l = ValidDouble("[+] Member length (mm): ");
         p = selected.getDensity();
         yield = selected.getYieldStrength();
-        mP = ValidDouble("Payload (kg): ");
-        alphaMax = ValidDouble("Max angular acceleration (rad/s^2): ");
-        stepRatio = ValidDouble("Step ratio (%) [default 1%]: ");
-        safetyFactor = ValidDouble("Safety factor (%) [default 100% from yield]: ");
+        mP = ValidDouble("[+] Payload (kg): ");
+        alphaMax = ValidDouble("[+] Max angular acceleration (rad/s^2): ");
+        Treq = torqueRec(T1.MassRec(), l/1000, mP, alphaMax);
+        Wreq = ValidDouble("[+] What is your required speed? [rpm]: ")*2*M_PI/60;
+        stepRatio = ValidDouble("[+] Step ratio (%) [default 1%]: ");
+        safetyFactor = ValidDouble("[+] Safety factor (%) [default 100% from yield]: ");
         flow_func_rec(T1);
         cout << "\n--- Optimization Complete ---\n"
-             << "Final Height: " << h << " mm\n"
-             << "Final Width: " << b << " mm\n"
-             << "Final Stress: " << MaxStressRec() << " MPa\n"
-             << "Bending Moment: " << bendingMomentRec() << " Nm\n"
-             << "Mass: " << MassRec() << " kg\n";
+             << "| Final Height: " << h << " mm\n"
+             << "| Final Width: " << b << " mm\n"
+             << "| Final Stress: " << MaxStressRec() << " MPa\n"
+             << "| Bending Moment: " << bendingMomentRec() << " Nm\n"
+             << "| Mass: " << MassRec() << " kg\n";
     }
     //Circle Handling Function
     void handleCircle(const Material& selected, link& C1)
     {
-        r = ValidDouble("\nCircle radius (mm): ");
-        l = ValidDouble("Member length (mm): ");
+        r = ValidDouble("\n[+] Circle radius (mm): ");
+        l = ValidDouble("[+] Member length (mm): ");
         p = selected.getDensity();
         yield = selected.getYieldStrength();
-        mP = ValidDouble("Payload (kg): ");
-        alphaMax = ValidDouble("Max angular acceleration (rad/s^2): ");
-        stepRatio = ValidDouble("Step ratio (%) [default 1%]: ");
-        safetyFactor = ValidDouble("Safety factor (%) [default 100% from yield]: ");
+        mP = ValidDouble("[+] Payload (kg): ");
+        alphaMax = ValidDouble("[+] Max angular acceleration (rad/s^2): ");
+        Treq = torqueRec(C1.MassCirc(), l/1000, mP, alphaMax);
+        Wreq = ValidDouble("[+] What is your required speed? [rpm]: ")*2*M_PI/60;
+        stepRatio = ValidDouble("[+] Step ratio (%) [default 1%]: ");
+        safetyFactor = ValidDouble("[+] Safety factor (%) [default 100% from yield]: ");
         flow_func_circ("Circle", C1);
 
         cout << "\n--- Optimization Complete ---\n"
-             << "Final Radius: " << r << " mm\n"
-             << "Final Stress: " << MaxStressCirc() << " MPa\n"
-             << "Bending Moment: " << bendingMomentCirc() << " Nm\n"
-             << "Mass: " << MassCirc() << " kg\n";
+             << "| Final Radius: " << r << " mm\n"
+             << "| Final Stress: " << MaxStressCirc() << " MPa\n"
+             << "| Bending Moment: " << bendingMomentCirc() << " Nm\n"
+             << "| Mass: " << MassCirc() << " kg\n";
     }
 
     //Flow Function For the iterative logic of the program
@@ -340,10 +359,10 @@ public:
                 iter++;
             }
         }
-        cout << "\nNumber of iterations = " << iter << "\n";
+        cout << "\n[*] Number of iterations = " << iter << "\n";
         if (iter >= max_iter)
         {
-            cout << "\n Optimization failed: reached max iterations.\n";
+            cout << "\n[!] Optimization failed: reached max iterations.\n";
         }
     }
 
@@ -374,10 +393,10 @@ public:
                 iter++;
             }
         }
-        cout <<"\n number of iteration = "<<iter<<"\n";
+        cout <<"\n[*] number of iteration = "<<iter<<"\n";
         if (iter >= max_iter)
         {
-            cout << "\n Optimization failed: reached max iterations.\n";
+            cout << "\n[!] Optimization failed: reached max iterations.\n";
         }
     }
 };
@@ -459,6 +478,12 @@ public:
         this -> M_REF = &MID;
         this -> G_REF = &GID;
     }
+    void allCalculations(){
+        Mtotal = M_REF-> mass + G_REF-> mass;
+        Dtotal = M_REF-> diameter + G_REF-> diameter;
+        Wtotal = M_REF-> width + G_REF-> width;
+        cost = Mtotal + Dtotal/100 + Wtotal/100;
+    }
 
 };
 
@@ -492,22 +517,11 @@ vector<Gearbox> gearboxes
 {
     Gearbox("GB 12 worm gear", 30/1, 1.5, 12, 62, 65),
     Gearbox("Planetary gearhead GP 42 A", 1296/1, .56,42,155.6,64),
-    Gearbox("Planetary Gearhead GP 16 A Ø16 mm, Sleeve Bearing", 4.4/1, .02, 16, 52.3, .9)
+    Gearbox("Planetary Gearhead GP 16 A Sleeve Bearing", 4.4/1, .02, 16, 52.3, .9)
 };
 
 vector <Pairs> PairsV;
 
-//Torque calculation
-//Required Torque Calculation
-double torqueRec(double ml, double l, double mp, double sig)
-{
-    return ml*9.81*l*0.5+mp*9.81*l+ml*pow((l*0.5),2)*sig +mp*pow(l,2)*sig;
-}
-//Motor gear box output tourque calculation
-double torqueMotorGear(double tMotor, double ratio, double efficency)
-{
-    return tMotor*ratio*efficency;
-}
 //Motor-Gearbox output speed calculation
 double speedMotorGear(double w, double ratio )
 {
@@ -532,6 +546,7 @@ void getRequiredPairs(double Treq, double Wreq)
                 Pairs tempPair;
                 tempPair.M_REF = &motors[i];
                 tempPair.G_REF = &gearboxes[j];
+                tempPair.allCalculations();
                 PairsV.push_back(tempPair);
             }
         }
@@ -542,13 +557,13 @@ void printPairs(vector <Pairs> &PairsV)
 {
     if(PairsV.size() == 0)
     {
-        cout << "No Pairs capable of lifting this mass!"<<endl;
+        cout << "[!] No Pairs capable of lifting this mass!"<<endl;
     }
     else
     {
         for (int j = 0; j < PairsV.size(); j++)
         {
-            cout << "Pair No {" << j+1 << "}: " << PairsV[j].M_REF->getName() << " with " << PairsV[j].G_REF->name << endl;
+            cout << "| Pair No {" << j+1 << "} | " << "costs: "<< PairsV[j].cost << " consists of: {"<< PairsV[j].M_REF->getName() << "} with {" << PairsV[j].G_REF->name << "}" << endl;
         }
     }
 }
@@ -556,7 +571,7 @@ void printPairs(vector <Pairs> &PairsV)
 vector <Pairs> Edit_dimensions(vector <Pairs> &PairsV)
 {
     char answer;
-    answer = validchar ( "\nfilter motors and grarboxs by equal diameters? (y/n): " ) ;
+    answer = validchar ( "\n[+] filter motors and grarboxs by equal diameters? (y/n): " ) ;
 
     if ( answer == 'y' || answer == 'Y' )
     {
@@ -575,14 +590,14 @@ vector <Pairs> Edit_dimensions(vector <Pairs> &PairsV)
     // If the user does not want to filter by equal diameters
     else if (answer == 'n' || answer == 'N')
     {
-        cout << "[*] The diameters for motor and gearbox will not be filtered.\n";
+        cout << "[*] All acceptable pairs:\n";
         return PairsV;
     }
 }
 
 int chooseMaterial()
 {
-    cout << "Choose a material:\n";
+    cout << "[*] Choose a material:\n";
     for (int i = 0; i < materials.size(); i++)
         cout << i + 1 << "- " << materials[i].getName() << "\n";
     cout << materials.size() + 1 << "- New Material\n";
@@ -591,9 +606,9 @@ int chooseMaterial()
 
     if (choice == materials.size() + 1)
     {
-        string newName = ValidString("New Material Name: ");
-        double newYield = ValidDouble("Yield Strength (MPa): ");
-        double newDensity = ValidDouble("Density (g/cm^3): ");
+        string newName = ValidString("[+] New Material Name: ");
+        double newYield = ValidDouble("[+] Yield Strength (MPa): ");
+        double newDensity = ValidDouble("[+] Density (g/cm^3): ");
         materials.emplace_back(newName, newYield, newDensity);
         choice = materials.size();
     }
@@ -607,19 +622,19 @@ void adding_motors()//ha7tag a7ot adding_motors(); fel main ... matensash //
     while (true)
     {
 
-        cout << "\nAdding a new Motor:\n";
+        cout << "\n[*] Adding a new Motor:\n";
 
-        string name = ValidString("Enter Motor Name: ");
+        string name = ValidString("[+] Enter Motor Name: ");
 
-        double torque=ValidDouble ("Enter Motor Torque (mNm): ") ;
+        double torque=ValidDouble ("[+] Enter Motor Torque (mNm): ") ;
 
-        double speed =ValidDouble ("Enter Motor Speed (rpm): ") ;
+        double speed =ValidDouble ("[+] Enter Motor Speed (rpm): ") ;
 
-        double mass = ValidDouble ("Enter Motor Mass (kg): ") ;
+        double mass = ValidDouble ("[+] Enter Motor Mass (kg): ") ;
 
-        double diameter =ValidDouble ("Enter Motor Diameter (mm): ") ;
+        double diameter =ValidDouble ("[+] Enter Motor Diameter (mm): ") ;
 
-        double width =ValidDouble ("Enter Motor Width (mm): ") ;
+        double width =ValidDouble ("[+] Enter Motor Width (mm): ") ;
 
 
 
@@ -629,15 +644,15 @@ void adding_motors()//ha7tag a7ot adding_motors(); fel main ... matensash //
         motors.push_back(newMotor);
 
         // Ask if they want to add another
-        char choice = validchar ("\nDo you want to add another motor? (y/n): ");
+        char choice = validchar ("\n[+] Do you want to add another motor? (y/n): ");
         if (choice == 'n' || choice == 'N')
         {
-            cout << "Exiting Motor addition.\n";
+            cout << "[*] Exiting Motor addition.\n";
             break;
         }
         else if (choice == 'y' || choice == 'Y')
         {
-            cout << "Adding another motor...\n";
+            cout << "[*] Adding another motor...\n";
         }
     }
 }
@@ -647,19 +662,19 @@ void adding_gearboxes()//ha7tag a7ot adding_gearboxes(); fel main ... matensash 
 
     while (true)
     {
-        cout << "\nAdding a new Gearbox:\n";
+        cout << "\n[*] Adding a new Gearbox:\n";
 
-        string name = ValidString( "Enter Gearbox Name: ");
+        string name = ValidString("[+] Enter Gearbox Name: ");
 
-        double reductionRatio =ValidDouble ("Enter Gearbox Reduction Ratio: ") ;
+        double reductionRatio =ValidDouble ("[+] Enter Gearbox Reduction Ratio: ") ;
 
-        double efficiency =ValidDouble ("Enter Gearbox Efficiency (e.g., 0.85 for 85%): ") ;
+        double efficiency =ValidDouble ("[+] Enter Gearbox Efficiency (e.g., 0.85 for 85%): ") ;
 
-        double mass =ValidDouble ("Enter Gearbox Mass (kg): ") ;
+        double mass =ValidDouble ("[+] Enter Gearbox Mass (kg): ") ;
 
-        double diameter =ValidDouble ("Enter Gearbox Diameter (mm): ") ;
+        double diameter =ValidDouble ("[+] Enter Gearbox Diameter (mm): ") ;
 
-        double width = ValidDouble ("Enter Gearbox Width (mm): ") ;
+        double width = ValidDouble ("[+] Enter Gearbox Width (mm): ") ;
 
         Gearbox newGearbox(name, reductionRatio, mass, diameter, width, efficiency);
 
@@ -668,21 +683,22 @@ void adding_gearboxes()//ha7tag a7ot adding_gearboxes(); fel main ... matensash 
 
         // Ask if they want to add another
         char choice;
-        choice = validchar ("\nDo you want to add another gearbox? (y/n): ") ;
+        choice = validchar ("\n[+] Do you want to add another gearbox? (y/n): ") ;
         if (choice == 'N'|| choice == 'n')
         {
-            cout << "Exiting Gearbox addition.\n";
+            cout << "[*] Exiting Gearbox addition.\n";
             break;
         }
         else if (choice == 'y' || choice == 'Y')
         {
-            cout << "Adding another gearbox...\n";
+            cout << "[*] Adding another gearbox...\n";
         }
     }
 }
 
 int main()
 {
+    cout << "Welcome to Team 38 C++ project [Spring 25]\n" << endl;
     link L1;
 
     int materialIndex = chooseMaterial();
@@ -694,12 +710,10 @@ int main()
     adding_motors();
     adding_gearboxes();
 
-    double Treq = torqueRec(L1.MassCirc(), L1.getl()/1000, L1.getmP(), L1.getalphaMax());
-    double Wreq = ValidDouble("What is your required speed? [rpm]: ")*2*M_PI/60;
-
     getRequiredPairs(Treq, Wreq);
 
     PairsV = Edit_dimensions(PairsV);
     printPairs(PairsV);
 
+    cout << "\n+-----------------------------------+\n|...................................|\n|...Thanks for using our software...|\n|...................................|\n+-----------------------------------+";
 }
