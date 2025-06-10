@@ -284,6 +284,7 @@ private:
     }
 
     //Handling Functions For Call after selecting Material
+
     //Rectangle Handling Function
     void handleRectangle(const Material& selected, link& T1)
     {
@@ -329,6 +330,7 @@ private:
              << "| Bending Moment: " << bendingMomentCirc() << " Nm\n"
              << "| Mass: " << MassCirc() << " kg\n";
     }
+    
     //Flow Function For the iterative logic of the program
     //Rectangle Flow Function
     void flow_func_rec(link &T)
@@ -398,7 +400,8 @@ private:
         cout << "\n[!] Circle optimization failed: max iterations reached.\n";
     }
 }
-    void finalResults() // Function to print final link dimension results
+    
+void finalResults() // Function to print final link dimension results
     {
         if (this->crossSectionShape == "circle")
         {
