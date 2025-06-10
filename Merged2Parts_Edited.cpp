@@ -137,7 +137,7 @@ public:
     //fn output l properties
     void display_material_properties() const
     {
-        
+
         cout<<"\n| Material: " << name;
         cout<<"\n| Yield Strength: " << yield_strength << " Mpa";
         cout<<"\n| Density: "<<density<<" g/cm^3\n";
@@ -561,6 +561,7 @@ void printPairs(vector <Pairs> &PairsV)
     }
     else
     {
+        cout << "[*] All acceptable pairs:\n";
         for (int j = 0; j < PairsV.size(); j++)
         {
             cout << "| Pair No {" << j+1 << "} | " << "costs: "<< PairsV[j].cost << " consists of: {"<< PairsV[j].M_REF->getName() << "} with {" << PairsV[j].G_REF->name << "}" << endl;
@@ -590,7 +591,6 @@ vector <Pairs> Edit_dimensions(vector <Pairs> &PairsV)
     // If the user does not want to filter by equal diameters
     else if (answer == 'n' || answer == 'N')
     {
-        cout << "[*] All acceptable pairs:\n";
         return PairsV;
     }
 }
@@ -696,6 +696,10 @@ void adding_gearboxes()//ha7tag a7ot adding_gearboxes(); fel main ... matensash 
     }
 }
 
+void thankYou(){
+    cout << "\n+-------------------------------+\n|...............................|\n|...Thanks for using our tool...|\n|...............................|\n+-------------------------------+";
+}
+
 int main()
 {
     cout << "Welcome to Team 38 C++ project [Spring 25]\n" << endl;
@@ -715,5 +719,5 @@ int main()
     PairsV = Edit_dimensions(PairsV);
     printPairs(PairsV);
 
-    cout << "\n+-----------------------------------+\n|...................................|\n|...Thanks for using our software...|\n|...................................|\n+-----------------------------------+";
+    thankYou();
 }
