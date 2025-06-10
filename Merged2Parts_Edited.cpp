@@ -525,7 +525,7 @@ vector <Pairs> PairsV;
 //Motor-Gearbox output speed calculation
 double speedMotorGear(double w, double ratio )
 {
-    return w*ratio;
+    return w/ratio;
 }
 //Compute Cost fn
 double cost(double m, double d, double w)
