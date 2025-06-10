@@ -165,9 +165,8 @@ private:
     stepRatio: ratio of increment or decrement in optimization
     */
     double h, b, r, l, p, mP, alphaMax, yield, stepRatio, safetyFactor; //justify why safety factor is double not float
-    string crossSectionShape;
-public:
-
+    string crossSectionShape,materialName;
+    public:
     // Constructor to initialize the link properties
     link(double h =0, double b =0, double r =0, double l=0, double p =0, double mP=0, double alphaMax=0, double yield =0, double stepRatio=1, double safetyFactor = 100) 
     {
@@ -293,6 +292,7 @@ public:
         l = ValidDouble("[+] Member length (mm): ");
         p = selected.getDensity();
         yield = selected.getYieldStrength();
+        materialName = selected.getName();
         mP = ValidDouble("[+] Payload (kg): ");
         alphaMax = ValidDouble("[+] Max angular acceleration (rad/s^2): ");
         Treq = torqueRec(T1.MassRec(), l/1000, mP, alphaMax);
@@ -314,6 +314,7 @@ public:
         l = ValidDouble("[+] Member length (mm): ");
         p = selected.getDensity();
         yield = selected.getYieldStrength();
+        materialName = selected.getName();
         mP = ValidDouble("[+] Payload (kg): ");
         alphaMax = ValidDouble("[+] Max angular acceleration (rad/s^2): ");
         Treq = torqueRec(C1.MassCirc(), l/1000, mP, alphaMax);
@@ -328,11 +329,10 @@ public:
              << "| Bending Moment: " << bendingMomentCirc() << " Nm\n"
              << "| Mass: " << MassCirc() << " kg\n";
     }
-
     //Flow Function For the iterative logic of the program
     //Rectangle Flow Function
     void flow_func_rec(link &T)
-{
+    {
     double sigma_calc = MaxStressRec();
     double allowable = (safetyFactor / 100.0) * yield;
     double tolerance = 0.01; // 0.01 MPa tolerance
@@ -365,11 +365,9 @@ public:
         cout << "\n[!] Rectangle optimization failed: max iterations reached.\n";
     }
 }
-
-
     //Circle Flow Function
-void flow_func_circ(link &C)
-{
+    void flow_func_circ(link &C)
+    {
     double sigma_calc = MaxStressCirc();
     double allowable = (safetyFactor / 100.0) * yield;
     double tolerance = 0.01; // 0.01 MPa tolerance
@@ -400,6 +398,28 @@ void flow_func_circ(link &C)
         cout << "\n[!] Circle optimization failed: max iterations reached.\n";
     }
 }
+    void finalResults() // Function to print final link dimension results
+    {
+        if (this->crossSectionShape == "circle")
+        {
+        cout << "\n--- Final Results ---\n"
+             << "| Material Selected: " << materialName <<"\n"
+             << "| Final Radius: " << r << " mm\n"
+             << "| Final Stress: " << MaxStressCirc() << " MPa\n"
+             << "| Bending Moment: " << bendingMomentCirc() << " Nm\n"
+             << "| Mass: " << MassCirc() << " kg\n";
+        }
+        else if (this->crossSectionShape == "rectangle")
+        {
+        cout << "\n--- Final Results ---\n"
+             << "| Material Selected: " << materialName <<"\n"
+             << "| Final Height: " << h << " mm\n"
+             << "| Final Width: " << b << " mm\n"
+             << "| Final Stress: " << MaxStressRec() << " MPa\n"
+             << "| Bending Moment: " << bendingMomentRec() << " Nm\n"
+             << "| Mass: " << MassRec() << " kg\n";
+        }
+    }
 
 };
 
@@ -720,6 +740,6 @@ int main()
 
     PairsV = Edit_dimensions(PairsV);
     printPairs(PairsV);
-
+    L1.finalResults();
     thankYou();
 }
