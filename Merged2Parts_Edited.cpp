@@ -647,9 +647,10 @@ int chooseMaterial()
 // the user keeps adding motors as much as he wants
 void adding_motors()//ha7tag a7ot adding_motors(); fel main ... matensash //
 {
-    char choice = validchar("\n[+] Do you want to add a new motor? (y/n): ");
-    if (choice == 'Y' || choice == 'y')
+    char choice = validchar("\n[+] Do you want to use the motor database? (y/n): ");
+    if (choice == 'N' || choice == 'n')
     {
+        motors.clear();
         while (true)
         {
             cout << "\n[*] Adding a new Motor:\n";
@@ -687,9 +688,10 @@ void adding_motors()//ha7tag a7ot adding_motors(); fel main ... matensash //
 void adding_gearboxes()//ha7tag a7ot adding_gearboxes(); fel main ... matensash //
 {
 
-    char choice = validchar("\n[+] Do you want to add a new gearbox? (y/n): ");
-    if (choice == 'Y' || choice == 'y')
+    char choice = validchar("\n[+] Do you want to use the gearbox database? (y/n): ");
+    if (choice == 'N' || choice == 'n')
     {
+        gearboxes.clear();
         while (true)
         {
             cout << "\n[*] Adding a new Gearbox:\n";
