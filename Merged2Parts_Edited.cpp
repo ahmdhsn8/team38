@@ -7,34 +7,28 @@
 #include <regex>
 
 using namespace std;
-
 const double g = 9.81; //m/s^2
 class link;
 double Treq;
 double Wreq;
 
-char validchar (string y) // Function to validate and read a character input
-{
-    char value; // Variable to store the input character
-    while (true) // Loop until a valid input is received
-    {
-        cout << y;
-        cin >> value;
-        if (value =='y'||value =='n'||value =='Y'||value =='N') // Check if the input is either 'y' or 'n' (case insensitive)
-        {
-            break;
-        }
-        else // If the input is not valid, prompt the user again
-        {
-            cout << "[!] Invalid input. Please enter (y/n) \n " ;
-            cin.clear(); // clear error flag
-            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // ignore the rest of the line
-            // This will ignore the rest of the line until a newline character is found
+char validchar(const string& prompt) /*Function to validate and read a single character input*/ {
+    string input; // Variable to store the input string
+    while (true) {
+        cout << prompt;
+        getline(cin, input); // Read the input from the user
+
+        if (input.length() == 1 && (input[0] == 'y' || input[0] == 'n' || input[0] == 'Y' || input[0] == 'N')) {
+            return input[0];
+        }  // Check if the input is a single character and is either 'y', 'n', 'Y', or 'N'
+        else {
+            cout << "[!] Invalid input. Please enter (y/n)\n"; // If the input is not valid, prompt the user again
+            cin.clear(); // Clear the error flag on cin
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Ignore the rest of the line until a newline character is found
         }
     }
-    return value;
 }
-double ValidDouble(string prompt)   // Function to validate and read a double input
+double ValidDouble(const string& prompt)   // Function to validate and read a double input
 {
     string input; // Variable to store the input string
     regex validPattern("^[0-9]+(\\.[0-9]+)?$"); // Only numbers and optional decimal
@@ -87,7 +81,7 @@ int ValidInt(int min, int max) // Function to validate and read an integer input
         cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Ignore the rest of the line until a newline character is found
     }
 }
-string ValidString(string prompt) // Function to validate and read a string input
+string ValidString(const string& prompt) // Function to validate and read a string input
 {
     string value; // Variable to store the input string
     regex validPattern("^[A-Za-z0-9]+$");  // Only alphanumeric characters
