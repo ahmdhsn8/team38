@@ -284,7 +284,6 @@ public:
     }
 
     //Handling Functions For Call after selecting Material
-
     //Rectangle Handling Function
     void handleRectangle(const Material& selected, link& T1)
     {
@@ -726,6 +725,85 @@ void adding_gearboxes()//ha7tag a7ot adding_gearboxes(); fel main ... matensash 
 
 }
 
+void sortingPairs(vector <Pairs> &PairsV)
+{
+    string choice;
+    while(true)
+    {
+        choice = ValidString("\n[+]Do you want to sort the output based on \"Cost\" or \"Torque\" or \"Speed\": ");
+        if (!(choice == "cost" || choice == "Cost" || choice == "Torque" || choice == "torque" || choice == "Speed" || choice == "speed" ))
+        {
+            cout << "[!] Invalid input, please type \"Cost\" or \"Torque\" or \"Speed\""<< endl;
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    //Sorting
+    int n = PairsV.size();
+    if(choice == "cost" || choice == "Cost")
+    {
+        cout << "[*] Sorting Based on Cost (Least to Greatest)" << endl;
+        // Outer loop that corresponds to the number of elements to be sorted
+        for (int i = 0; i < n - 1; i++)
+        {
+            // Last i elements are already in place
+            for (int j = 0; j < n - i - 1; j++)
+            {
+                if (PairsV[j+1].cost < PairsV[j].cost)
+                {
+                    swap(PairsV[j], PairsV[j + 1]);
+                }
+            }
+        }
+        printPairs(PairsV);
+    }
+    else if(choice == "torque" || choice == "Torque")
+    {
+        cout << "[*] Sorting Based on Torque (Greatest to Least)" << endl;
+        // Outer loop that corresponds to the number of elements to be sorted
+        for (int i = 0; i < n - 1; i++)
+        {
+            // Last i elements are already in place
+            for (int j = 0; j < n - i - 1; j++)
+            {
+                if (PairsV[j+1].Tout > PairsV[j].Tout)
+                {
+                    swap(PairsV[j], PairsV[j + 1]);
+                }
+            }
+        }
+        cout << "[*] All acceptable pairs:\n";
+        for (int j = 0; j < PairsV.size(); j++)
+        {
+            cout << "| Pair No {" << j+1 << "} | " << "Torque: "<< PairsV[j].Tout << " consists of: {"<< PairsV[j].M_REF->getName() << "} with {" << PairsV[j].G_REF->name << "}" << endl;
+        }
+    }
+    else if(choice == "speed" || choice == "Speed")
+    {
+        cout << "[*] Sorting Based on Speed (Greatest to Least)" << endl;
+        // Outer loop that corresponds to the number of elements to be sorted
+        for (int i = 0; i < n - 1; i++)
+        {
+            // Last i elements are already in place
+            for (int j = 0; j < n - i - 1; j++)
+            {
+                if (PairsV[j+1].Wout > PairsV[j].Wout)
+                {
+                    swap(PairsV[j], PairsV[j + 1]);
+                }
+            }
+        }
+        cout << "[*] All acceptable pairs:\n";
+        for (int j = 0; j < PairsV.size(); j++)
+        {
+            cout << "| Pair No {" << j+1 << "} | " << "Speed: "<< PairsV[j].Wout << " consists of: {"<< PairsV[j].M_REF->getName() << "} with {" << PairsV[j].G_REF->name << "}" << endl;
+        }
+    }
+}
+
 void finalResults(vector <Pairs> &PairsV)
 {
     if(PairsV.size() != 0)
@@ -746,8 +824,9 @@ void finalResults(vector <Pairs> &PairsV)
             {
                 bestTorquePairs.push_back(PairsV[j]);
             }
+
             //Getting the least cost
-            else if (PairsV[j].cost < bestCostPairs[0].cost)
+            if (PairsV[j].cost < bestCostPairs[0].cost)
             {
                 bestCostPairs.clear();
                 bestCostPairs.push_back(PairsV[j]);
@@ -756,8 +835,9 @@ void finalResults(vector <Pairs> &PairsV)
             {
                 bestCostPairs.push_back(PairsV[j]);
             }
+
             //Getting the Greatest Speed
-            else if (PairsV[j].Wout < bestSpeedPairs[0].Wout)
+            if (PairsV[j].Wout > bestSpeedPairs[0].Wout)
             {
                 bestSpeedPairs.clear();
                 bestSpeedPairs.push_back(PairsV[j]);
@@ -783,31 +863,7 @@ void finalResults(vector <Pairs> &PairsV)
             cout << "| Pair No {" << j+1 << "} | " << "Speed: "<< bestSpeedPairs[j].Wout << " consists of: {"<< bestSpeedPairs[j].M_REF->getName() << "} with {" << bestSpeedPairs[j].G_REF->name << "}" << endl;
         }
     }
-}
-
-void sortingPairs(vector <Pairs> &PairsV){
-    string choice;
-    while(true)
-    {
-        choice = ValidString("Do you want to sort the output based on \"Cost\" or \"Torque\" or \"Speed\": ");
-        if (!(choice == "cost" || choice == "Cost" || choice == "Torque" || choice == "torque" || choice == "Speed" || choice == "speed" ))
-            {
-                cout << "[!] Invalid input, please type \"Cost\" or \"Torque\" or \"Speed\""<< endl;
-            }
-        else
-            {
-                break;
-            }
-    }
-    if(choice == "cost" || choice == "Cost"){
-        cout << "[*] Sorting Based on Cost (Least to Greatest)" << endl;
-    }
-    else if(choice == "torque" || choice == "Torque"){
-        cout << "[*] Sorting Based on Cost (Greatest to Least)" << endl;
-    }
-    else if(choice == "speed" || choice == "Speed"){
-        cout << "[*] Sorting Based on Cost (Greatest to Least)" << endl;
-    }
+    sortingPairs(PairsV);
 }
 
 void thankYou()
@@ -840,6 +896,5 @@ int main()
 
     L1.finalResults();
     finalResults(PairsV);
-    sortingPairs(PairsV);
     thankYou();
 }
