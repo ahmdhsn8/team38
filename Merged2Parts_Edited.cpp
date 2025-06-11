@@ -23,7 +23,7 @@ char validchar (string y) // Function to validate and read a character input
         if (value =='y'||value =='n'||value =='Y'||value =='N') // Check if the input is either 'y' or 'n' (case insensitive)
         {
             break;
-        }   
+        }
         else // If the input is not valid, prompt the user again
         {
             cout << "[!] Invalid input. Please enter (y/n) \n " ;
@@ -72,7 +72,7 @@ int ValidInt(int min, int max) // Function to validate and read an integer input
         cout << "[+] Enter a number between " << min << " and " << max << ": ";
         cin >> input;
         if (regex_match(input, validPattern)) // Check if the input matches the valid pattern
-        { 
+        {
             value = stoi(input); // Convert the input string to an integer
             if (value >= min && value <= max) // Check if the value is within the specified range
             {
@@ -123,7 +123,7 @@ double torqueMotorGear(double tMotor, double ratio, double efficency)
 
 class Material   // Class to represent a material with its properties
 {
-protected: 
+protected:
     string name;
     double yield_strength,density;
 public:
@@ -161,15 +161,14 @@ class link // Class to represent a link with its properties and methods for calc
 private:
     /*
     h: height | b: base | r: radius | l: Length | p: density
-    mP: mass payload | alphaMax: max angular acc | yield: yield strength | 
+    mP: mass payload | alphaMax: max angular acc | yield: yield strength |
     stepRatio: ratio of increment or decrement in optimization
     */
     double h, b, r, l, p, mP, alphaMax, yield, stepRatio, safetyFactor; //justify why safety factor is double not float
-    string crossSectionShape;
+    string crossSectionShape,materialName;
 public:
-
     // Constructor to initialize the link properties
-    link(double h =0, double b =0, double r =0, double l=0, double p =0, double mP=0, double alphaMax=0, double yield =0, double stepRatio=1, double safetyFactor = 100) 
+    link(double h =0, double b =0, double r =0, double l=0, double p =0, double mP=0, double alphaMax=0, double yield =0, double stepRatio=1, double safetyFactor = 100)
     {
         this-> h=h;
         this-> b=b;
@@ -285,6 +284,7 @@ public:
     }
 
     //Handling Functions For Call after selecting Material
+
     //Rectangle Handling Function
     void handleRectangle(const Material& selected, link& T1)
     {
@@ -293,6 +293,7 @@ public:
         l = ValidDouble("[+] Member length (mm): ");
         p = selected.getDensity();
         yield = selected.getYieldStrength();
+        materialName = selected.getName();
         mP = ValidDouble("[+] Payload (kg): ");
         alphaMax = ValidDouble("[+] Max angular acceleration (rad/s^2): ");
         Treq = torqueRec(T1.MassRec(), l/1000, mP, alphaMax);
@@ -314,6 +315,7 @@ public:
         l = ValidDouble("[+] Member length (mm): ");
         p = selected.getDensity();
         yield = selected.getYieldStrength();
+        materialName = selected.getName();
         mP = ValidDouble("[+] Payload (kg): ");
         alphaMax = ValidDouble("[+] Max angular acceleration (rad/s^2): ");
         Treq = torqueRec(C1.MassCirc(), l/1000, mP, alphaMax);
@@ -332,74 +334,95 @@ public:
     //Flow Function For the iterative logic of the program
     //Rectangle Flow Function
     void flow_func_rec(link &T)
-{
-    double sigma_calc = MaxStressRec();
-    double allowable = (safetyFactor / 100.0) * yield;
-    double tolerance = 0.01; // 0.01 MPa tolerance
-    long int max_iter = 100000;
-    int iter = 0;
-    while (abs(sigma_calc - allowable) > tolerance && iter < max_iter)
     {
-        if (sigma_calc > allowable)
+        double sigma_calc = MaxStressRec();
+        double allowable = (safetyFactor / 100.0) * yield;
+        double tolerance = 0.01; // 0.01 MPa tolerance
+        long int max_iter = 100000;
+        int iter = 0;
+        while (abs(sigma_calc - allowable) > tolerance && iter < max_iter)
         {
-            b += (stepRatio / 100.0) * b;
-            h += (stepRatio / 100.0) * h;
-        }
-        else
-        {
-            b -= (stepRatio / 100.0) * b;
-            h -= (stepRatio / 100.0) * h;
-        }
+            if (sigma_calc > allowable)
+            {
+                b += (stepRatio / 100.0) * b;
+                h += (stepRatio / 100.0) * h;
+            }
+            else
+            {
+                b -= (stepRatio / 100.0) * b;
+                h -= (stepRatio / 100.0) * h;
+            }
 
-        // Prevent unrealistic dimensions
-        if (b < 1.0 || h < 1.0)
-        {
-            cout << "\n[!] Rectangle dimensions too small. Optimization aborted.\n";
-            break;
+            // Prevent unrealistic dimensions
+            if (b < 1.0 || h < 1.0)
+            {
+                cout << "\n[!] Rectangle dimensions too small. Optimization aborted.\n";
+                break;
+            }
+            sigma_calc = MaxStressRec();
+            iter++;
         }
-        sigma_calc = MaxStressRec();
-        iter++;
+        if (iter >= max_iter)
+        {
+            cout << "\n[!] Rectangle optimization failed: max iterations reached.\n";
+        }
     }
-    if (iter >= max_iter)
-    {
-        cout << "\n[!] Rectangle optimization failed: max iterations reached.\n";
-    }
-}
-
-
     //Circle Flow Function
-void flow_func_circ(link &C)
-{
-    double sigma_calc = MaxStressCirc();
-    double allowable = (safetyFactor / 100.0) * yield;
-    double tolerance = 0.01; // 0.01 MPa tolerance
-    long int max_iter = 100000;
-    int iter = 0;
+    void flow_func_circ(link &C)
+    {
+        double sigma_calc = MaxStressCirc();
+        double allowable = (safetyFactor / 100.0) * yield;
+        double tolerance = 0.01; // 0.01 MPa tolerance
+        long int max_iter = 100000;
+        int iter = 0;
 
-    while (abs(sigma_calc - allowable) > tolerance && iter < max_iter)
-    {
-        if (sigma_calc > allowable)
+        while (abs(sigma_calc - allowable) > tolerance && iter < max_iter)
         {
-            r += (stepRatio / 100.0) * r;
+            if (sigma_calc > allowable)
+            {
+                r += (stepRatio / 100.0) * r;
+            }
+            else
+            {
+                r -= (stepRatio / 100.0) * r;
+            }
+            // Prevent unrealistic diameter
+            if (r < 1.0)
+            {
+                cout << "\n[!] Circle diameter too small. Optimization aborted.\n";
+                break;
+            }
+            sigma_calc = MaxStressCirc();
+            iter++;
         }
-        else
+        if (iter >= max_iter)
         {
-            r -= (stepRatio / 100.0) * r;
+            cout << "\n[!] Circle optimization failed: max iterations reached.\n";
         }
-        // Prevent unrealistic diameter
-        if (r < 1.0)
-        {
-            cout << "\n[!] Circle diameter too small. Optimization aborted.\n";
-            break;
-        }
-        sigma_calc = MaxStressCirc();
-        iter++;
     }
-    if (iter >= max_iter)
+
+    void finalResults() // Function to print final link dimension results
     {
-        cout << "\n[!] Circle optimization failed: max iterations reached.\n";
+        if (this->crossSectionShape == "circle")
+        {
+            cout << "\n--- Final Results ---\n"
+                 << "| Material Selected: " << materialName <<"\n"
+                 << "| Final Radius: " << r << " mm\n"
+                 << "| Final Stress: " << MaxStressCirc() << " MPa\n"
+                 << "| Bending Moment: " << bendingMomentCirc() << " Nm\n"
+                 << "| Mass: " << MassCirc() << " kg\n";
+        }
+        else if (this->crossSectionShape == "rectangle")
+        {
+            cout << "\n--- Final Results ---\n"
+                 << "| Material Selected: " << materialName <<"\n"
+                 << "| Final Height: " << h << " mm\n"
+                 << "| Final Width: " << b << " mm\n"
+                 << "| Final Stress: " << MaxStressRec() << " MPa\n"
+                 << "| Bending Moment: " << bendingMomentRec() << " Nm\n"
+                 << "| Mass: " << MassRec() << " kg\n";
+        }
     }
-}
 
 };
 
@@ -480,7 +503,10 @@ public:
         this -> M_REF = &MID;
         this -> G_REF = &GID;
     }
-    void allCalculations(){
+    void allCalculations()
+    {
+        Tout = M_REF->torque * G_REF->redRatio * G_REF->eff;
+        Wout = M_REF->speed / G_REF->redRatio * G_REF->eff;
         Mtotal = M_REF-> mass + G_REF-> mass;
         Dtotal = M_REF-> diameter + G_REF-> diameter;
         Wtotal = M_REF-> width + G_REF-> width;
@@ -621,85 +647,233 @@ int chooseMaterial()
 // the user keeps adding motors as much as he wants
 void adding_motors()//ha7tag a7ot adding_motors(); fel main ... matensash //
 {
-    while (true)
+    char choice = validchar("\n[+] Do you want to add a new motor? (y/n): ");
+    if (choice == 'Y' || choice == 'y')
     {
-
-        cout << "\n[*] Adding a new Motor:\n";
-
-        string name = ValidString("[+] Enter Motor Name: ");
-
-        double torque=ValidDouble ("[+] Enter Motor Torque (mNm): ") ;
-
-        double speed =ValidDouble ("[+] Enter Motor Speed (rpm): ") ;
-
-        double mass = ValidDouble ("[+] Enter Motor Mass (kg): ") ;
-
-        double diameter =ValidDouble ("[+] Enter Motor Diameter (mm): ") ;
-
-        double width =ValidDouble ("[+] Enter Motor Width (mm): ") ;
-
-
-
-        Motor newMotor(name, torque, speed, mass, diameter, width);
-
-        // Push it into the vector
-        motors.push_back(newMotor);
-
-        // Ask if they want to add another
-        char choice = validchar ("\n[+] Do you want to add another motor? (y/n): ");
-        if (choice == 'n' || choice == 'N')
+        while (true)
         {
-            cout << "[*] Exiting Motor addition.\n";
-            break;
+            cout << "\n[*] Adding a new Motor:\n";
+
+            string name = ValidString("[+] Enter Motor Name: ");
+            double torque=ValidDouble ("[+] Enter Motor Torque (mNm): ") ;
+            double speed =ValidDouble ("[+] Enter Motor Speed (rpm): ") ;
+            double mass = ValidDouble ("[+] Enter Motor Mass (kg): ") ;
+            double diameter =ValidDouble ("[+] Enter Motor Diameter (mm): ") ;
+            double width =ValidDouble ("[+] Enter Motor Width (mm): ") ;
+
+            Motor newMotor(name, torque, speed, mass, diameter, width);
+            // Push it into the vector
+            motors.push_back(newMotor);
+
+            // Ask if they want to add another
+            choice = validchar ("\n[+] Do you want to add another motor? (y/n): ");
+            if (choice == 'n' || choice == 'N')
+            {
+                cout << "[*] Exiting Motor addition.\n";
+                break;
+            }
+            else if (choice == 'y' || choice == 'Y')
+            {
+                cout << "[*] Adding another motor...\n";
+            }
         }
-        else if (choice == 'y' || choice == 'Y')
-        {
-            cout << "[*] Adding another motor...\n";
-        }
+    }
+    else
+    {
+        cout << "[*] You are using the database now." << endl;
     }
 }
 // the user keeps adding gearboxes as much as he wants
 void adding_gearboxes()//ha7tag a7ot adding_gearboxes(); fel main ... matensash //
 {
 
-    while (true)
+    char choice = validchar("\n[+] Do you want to add a new gearbox? (y/n): ");
+    if (choice == 'Y' || choice == 'y')
     {
-        cout << "\n[*] Adding a new Gearbox:\n";
-
-        string name = ValidString("[+] Enter Gearbox Name: ");
-
-        double reductionRatio =ValidDouble ("[+] Enter Gearbox Reduction Ratio: ") ;
-
-        double efficiency =ValidDouble ("[+] Enter Gearbox Efficiency (e.g., 0.85 for 85%): ") ;
-
-        double mass =ValidDouble ("[+] Enter Gearbox Mass (kg): ") ;
-
-        double diameter =ValidDouble ("[+] Enter Gearbox Diameter (mm): ") ;
-
-        double width = ValidDouble ("[+] Enter Gearbox Width (mm): ") ;
-
-        Gearbox newGearbox(name, reductionRatio, mass, diameter, width, efficiency);
-
-        // Push it into the vector
-        gearboxes.push_back(newGearbox);
-
-        // Ask if they want to add another
-        char choice;
-        choice = validchar ("\n[+] Do you want to add another gearbox? (y/n): ") ;
-        if (choice == 'N'|| choice == 'n')
+        while (true)
         {
-            cout << "[*] Exiting Gearbox addition.\n";
+            cout << "\n[*] Adding a new Gearbox:\n";
+
+            string name = ValidString("[+] Enter Gearbox Name: ");
+            double reductionRatio =ValidDouble ("[+] Enter Gearbox Reduction Ratio: ") ;
+            double efficiency =ValidDouble ("[+] Enter Gearbox Efficiency (e.g., 0.85 for 85%): ") ;
+            double mass =ValidDouble ("[+] Enter Gearbox Mass (kg): ") ;
+            double diameter =ValidDouble ("[+] Enter Gearbox Diameter (mm): ") ;
+            double width = ValidDouble ("[+] Enter Gearbox Width (mm): ") ;
+
+            Gearbox newGearbox(name, reductionRatio, mass, diameter, width, efficiency);
+
+            // Push it into the vector
+            gearboxes.push_back(newGearbox);
+
+            // Ask if they want to add another
+            choice = validchar ("\n[+] Do you want to add another gearbox? (y/n): ") ;
+            if (choice == 'N'|| choice == 'n')
+            {
+                cout << "[*] Exiting Gearbox addition.\n";
+                break;
+            }
+            else if (choice == 'y' || choice == 'Y')
+            {
+                cout << "[*] Adding another gearbox...\n";
+            }
+        }
+    }
+    else
+    {
+        cout << "[*] You are using the database now." << endl;
+    }
+
+}
+
+void sortingPairs(vector <Pairs> &PairsV)
+{
+    string choice;
+    while(true)
+    {
+        choice = ValidString("\n[+]Do you want to sort the output based on \"Cost\" or \"Torque\" or \"Speed\": ");
+        if (!(choice == "cost" || choice == "Cost" || choice == "Torque" || choice == "torque" || choice == "Speed" || choice == "speed" ))
+        {
+            cout << "[!] Invalid input, please type \"Cost\" or \"Torque\" or \"Speed\""<< endl;
+        }
+        else
+        {
             break;
         }
-        else if (choice == 'y' || choice == 'Y')
+    }
+
+    //Sorting
+    int n = PairsV.size();
+    if(choice == "cost" || choice == "Cost")
+    {
+        cout << "[*] Sorting Based on Cost (Least to Greatest)" << endl;
+        // Outer loop that corresponds to the number of elements to be sorted
+        for (int i = 0; i < n - 1; i++)
         {
-            cout << "[*] Adding another gearbox...\n";
+            // Last i elements are already in place
+            for (int j = 0; j < n - i - 1; j++)
+            {
+                if (PairsV[j+1].cost < PairsV[j].cost)
+                {
+                    swap(PairsV[j], PairsV[j + 1]);
+                }
+            }
+        }
+        printPairs(PairsV);
+    }
+    else if(choice == "torque" || choice == "Torque")
+    {
+        cout << "[*] Sorting Based on Torque (Greatest to Least)" << endl;
+        // Outer loop that corresponds to the number of elements to be sorted
+        for (int i = 0; i < n - 1; i++)
+        {
+            // Last i elements are already in place
+            for (int j = 0; j < n - i - 1; j++)
+            {
+                if (PairsV[j+1].Tout > PairsV[j].Tout)
+                {
+                    swap(PairsV[j], PairsV[j + 1]);
+                }
+            }
+        }
+        cout << "[*] All acceptable pairs:\n";
+        for (int j = 0; j < PairsV.size(); j++)
+        {
+            cout << "| Pair No {" << j+1 << "} | " << "Torque: "<< PairsV[j].Tout << " consists of: {"<< PairsV[j].M_REF->getName() << "} with {" << PairsV[j].G_REF->name << "}" << endl;
+        }
+    }
+    else if(choice == "speed" || choice == "Speed")
+    {
+        cout << "[*] Sorting Based on Speed (Greatest to Least)" << endl;
+        // Outer loop that corresponds to the number of elements to be sorted
+        for (int i = 0; i < n - 1; i++)
+        {
+            // Last i elements are already in place
+            for (int j = 0; j < n - i - 1; j++)
+            {
+                if (PairsV[j+1].Wout > PairsV[j].Wout)
+                {
+                    swap(PairsV[j], PairsV[j + 1]);
+                }
+            }
+        }
+        cout << "[*] All acceptable pairs:\n";
+        for (int j = 0; j < PairsV.size(); j++)
+        {
+            cout << "| Pair No {" << j+1 << "} | " << "Speed: "<< PairsV[j].Wout << " consists of: {"<< PairsV[j].M_REF->getName() << "} with {" << PairsV[j].G_REF->name << "}" << endl;
         }
     }
 }
 
-void thankYou(){
-    cout << "\n+-------------------------------+\n|...............................|\n|...Thanks for using our tool...|\n|...............................|\n+-------------------------------+";
+void finalResults(vector <Pairs> &PairsV)
+{
+    if(PairsV.size() != 0)
+    {
+        vector <Pairs> bestCostPairs = {PairsV[0]};
+        vector <Pairs> bestTorquePairs = {PairsV[0]};
+        vector <Pairs> bestSpeedPairs = {PairsV[0]};
+
+        for (int j = 0; j < PairsV.size(); j++)
+        {
+            //Getting the Greatest Torque
+            if (PairsV[j].Tout > bestTorquePairs[0].Tout)
+            {
+                bestTorquePairs.clear();
+                bestTorquePairs.push_back(PairsV[j]);
+            }
+            else if (PairsV[j].Tout == bestTorquePairs[0].Tout)
+            {
+                bestTorquePairs.push_back(PairsV[j]);
+            }
+
+            //Getting the least cost
+            if (PairsV[j].cost < bestCostPairs[0].cost)
+            {
+                bestCostPairs.clear();
+                bestCostPairs.push_back(PairsV[j]);
+            }
+            else if (PairsV[j].cost == bestCostPairs[0].cost)
+            {
+                bestCostPairs.push_back(PairsV[j]);
+            }
+
+            //Getting the Greatest Speed
+            if (PairsV[j].Wout > bestSpeedPairs[0].Wout)
+            {
+                bestSpeedPairs.clear();
+                bestSpeedPairs.push_back(PairsV[j]);
+            }
+            else if (PairsV[j].Wout == bestSpeedPairs[0].Wout)
+            {
+                bestSpeedPairs.push_back(PairsV[j]);
+            }
+        }
+        cout << "[*] Least cost pair(s): \n";
+        for (int j = 0; j < bestCostPairs.size(); j++)
+        {
+            cout << "| Pair No {" << j+1 << "} | " << "costs: "<< bestCostPairs[j].cost << " consists of: {"<< bestCostPairs[j].M_REF->getName() << "} with {" << bestCostPairs[j].G_REF->name << "}" << endl;
+        }
+        cout << "[*] Greatest Torque pair(s): \n";
+        for (int j = 0; j < bestTorquePairs.size(); j++)
+        {
+            cout << "| Pair No {" << j+1 << "} | " << "Torque: "<< bestTorquePairs[j].Tout << " consists of: {"<< bestTorquePairs[j].M_REF->getName() << "} with {" << bestTorquePairs[j].G_REF->name << "}" << endl;
+        }
+        cout << "[*] Greatest Speed pair(s): \n";
+        for (int j = 0; j < bestSpeedPairs.size(); j++)
+        {
+            cout << "| Pair No {" << j+1 << "} | " << "Speed: "<< bestSpeedPairs[j].Wout << " consists of: {"<< bestSpeedPairs[j].M_REF->getName() << "} with {" << bestSpeedPairs[j].G_REF->name << "}" << endl;
+        }
+    }
+    sortingPairs(PairsV);
+}
+
+void thankYou()
+{
+    cout << "\n+-------------------------------+\n";
+    cout  <<  "|...............................|\n";
+    cout  <<  "|...Thanks for using our tool...|\n";
+    cout  <<  "|...............................|\n";
+    cout  <<  "+-------------------------------+";
 }
 
 int main()
@@ -721,5 +895,7 @@ int main()
     PairsV = Edit_dimensions(PairsV);
     printPairs(PairsV);
 
+    L1.finalResults();
+    finalResults(PairsV);
     thankYou();
 }
