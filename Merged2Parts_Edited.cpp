@@ -424,30 +424,6 @@ public:
                  << "| Mass: " << MassRec() << " kg\n";
         }
     }
-
-    void finalResults() // Function to print final link dimension results
-    {
-        if (this->crossSectionShape == "circle")
-        {
-            cout << "\n--- Final Results ---\n"
-                 << "| Material Selected: " << materialName <<"\n"
-                 << "| Final Radius: " << r << " mm\n"
-                 << "| Final Stress: " << MaxStressCirc() << " MPa\n"
-                 << "| Bending Moment: " << bendingMomentCirc() << " Nm\n"
-                 << "| Mass: " << MassCirc() << " kg\n";
-        }
-        else if (this->crossSectionShape == "rectangle")
-        {
-            cout << "\n--- Final Results ---\n"
-                 << "| Material Selected: " << materialName <<"\n"
-                 << "| Final Height: " << h << " mm\n"
-                 << "| Final Width: " << b << " mm\n"
-                 << "| Final Stress: " << MaxStressRec() << " MPa\n"
-                 << "| Bending Moment: " << bendingMomentRec() << " Nm\n"
-                 << "| Mass: " << MassRec() << " kg\n";
-        }
-    }
-
 };
 
 class Motor
@@ -624,7 +600,7 @@ void printPairs(vector <Pairs> &PairsV)
 vector <Pairs> Edit_dimensions(vector <Pairs> &PairsV)
 {
     char answer;
-    answer = validchar ( "\n[+] filter motors and grarboxs by equal diameters? (y/n): " ) ;
+    answer = validchar ( "\n[+] filter motors and gearboxs by equal diameters? (y/n): " ) ;
 
     if ( answer == 'y' || answer == 'Y' )
     {
