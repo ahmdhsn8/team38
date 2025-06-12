@@ -14,19 +14,18 @@ double Wreq;
 
 char validchar(const string& prompt) /*Function to validate and read a single character input*/ {
     string input; // Variable to store the input string
-    while (true) {
-        cout << prompt;
-        getline(cin, input); // Read the input from the user
-
-        if (input.length() == 1 && (input[0] == 'y' || input[0] == 'n' || input[0] == 'Y' || input[0] == 'N')) {
+        while (true) {
+            cout << prompt;
+            cin >>input;
+            if (input.length() == 1 && (input[0] == 'y' || input[0] == 'n' || input[0] == 'Y' || input[0] == 'N')) {
             return input[0];
-        }  // Check if the input is a single character and is either 'y', 'n', 'Y', or 'N'
-        else {
-            cout << "[!] Invalid input. Please enter (y/n)\n"; // If the input is not valid, prompt the user again
-            cin.clear(); // Clear the error flag on cin
-            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Ignore the rest of the line until a newline character is found
+            }  // Check if the input is a single character and is either 'y', 'n', 'Y', or 'N'
+            else {
+                cout << "[!] Invalid input. Please enter (y/n)\n"; // If the input is not valid, prompt the user again
+                cin.clear(); // Clear the error flag on cin
+                cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Ignore the rest of the line until a newline character is found
+            }
         }
-    }
 }
 double ValidDouble(const string& prompt)   // Function to validate and read a double input
 {
