@@ -510,8 +510,8 @@ public:
 
 vector <Material> materials = // List of all materials with their properties
 {
-    Material("Steel", 247, 7.58),
-    Material("Cast Iron", 130, 7.3),
+    Material("Steel", 247, 7.58), // Yield Strength in MPa, Density in g/cm^3
+    Material("Cast Iron", 130, 7.3),             
     Material("Copper Nickel", 130, 8.94),
     Material("Brass", 200, 8.73),
     Material("Aluminium", 241, 2.7),
@@ -620,7 +620,7 @@ int chooseMaterial()
 {
     cout << "[*] Choose a material:\n";
     for (int i = 0; i < materials.size(); i++)
-        cout << i + 1 << "- " << materials[i].getName() << "\n";
+        cout << i + 1 << "- " << materials[i].getName() << " [Yield Strength:" <<materials[i].getYieldStrength() <<" MPa ,density: " <<materials[i].getDensity()<<" g/cm^3]\n";
     cout << materials.size() + 1 << "- New Material\n";
 
     int choice = ValidInt(1, materials.size() + 1);
